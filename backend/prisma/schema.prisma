@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_POSTGRES")
+}
+
+enum UserRole {
+  ADMIN
+  MEDICO
+  RECEPCIONISTA
+  ENFERMAGEM
+  PACIENTE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(RECEPCIONISTA)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Doctor {
+  id           String        @id @default(cuid())
+  name         String
+  crm          String        @unique
+  specialty    String
+  cpf          String?
+  phone        String?
+  email        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@map("doctors")
+}
+
+model Patient {
+  id               String        @id @default(cuid())
+  name               String
+  cpf                String?       @unique
+  cadastroIncompleto Boolean       @default(false)
+  susCard            String?
+  birthDate        String?
+  maritalStatus    String?
+  sex              String?
+  race             String?
+  naturality       String?
+  nationality      String?
+  rg               String?
+  profession       String?
+  workplace        String?
+  phone            String?
+  phone2           String?
+  phoneResidencial String?
+  phoneComercial   String?
+  email            String?
+  addrStreet       String?
+  addrNumber       String?
+  addrComplement   String?
+  addrNeighborhood String?
+  addrCep          String?
+  addrCity         String?      @default("MANAUS")
+  addrUf           String?      @default("AM")
+  addrIbgeCode     String?
+  reference        String?
+  stars            Int          @default(0)
+  entryDate        String?
+  personType       String?      @default("Física")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  appointments     Appointment[]
+
+  @@map("patients")
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  patientId     String
+  doctorId      String
+  date          String
+  time          String
+  category      String
+  type          String
+  procedureCode String?
+  procedureName String?
+  value         Float    @default(0)
+  status        String   @default("Aguardando")
+  obsAgenda     String?
+  obsTratamento String?
+  isRegistered  Boolean  @default(true)
+  receptionist  String?
+  arrivalTime   String?
+  wait          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+
+  @@map("appointments")
+}
+
+model Procedure {
+  id   String @id @default(cuid())
+  code String @unique
+  name String
+
+  @@map("procedures")
+}
