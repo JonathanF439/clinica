@@ -168,7 +168,7 @@ export default function NovoAgendamentoPage() {
         </div>
 
         {/* Date and time */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="label">Data *</label>
             <input type="date" className="input" required value={form.date} onChange={(e) => set("date", e.target.value)} />
@@ -180,7 +180,7 @@ export default function NovoAgendamentoPage() {
         </div>
 
         {/* Category and type */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="label">Categoria *</label>
             <select className="input" value={form.category} onChange={(e) => set("category", e.target.value)}>

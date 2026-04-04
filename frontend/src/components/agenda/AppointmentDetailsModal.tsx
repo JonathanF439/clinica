@@ -127,7 +127,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex w-full max-w-5xl flex-col rounded-xl bg-white shadow-xl max-h-[90vh]">
+      <div className="flex w-full max-w-[95vw] flex-col rounded-xl bg-white shadow-xl max-h-[90vh] lg:max-w-5xl">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
@@ -182,7 +182,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Data" value={formatDate(appointment.date)} />
               <Field label="Horário" value={appointment.time} />
               <Field label="Médico" value={d?.name ?? "—"} />
@@ -222,7 +222,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
               {/* Dados Principais */}
               <section>
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Dados Principais</p>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="col-span-4">
                     <label className="label">Nome Completo *</label>
                     <input className="input" required value={patientForm.name} onChange={(e) => setP("name", e.target.value.toUpperCase())} />
@@ -281,7 +281,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
               {/* Contato */}
               <section>
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Contato</p>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className="label">Celular 1</label>
                     <input className="input" value={patientForm.phone ?? ""} onChange={(e) => setP("phone", maskPhone(e.target.value))} placeholder="(00) 00000-0000" />
@@ -312,7 +312,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
               {/* Endereço */}
               <section>
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Endereço</p>
-                <div className="grid grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
                   <div className="col-span-4">
                     <label className="label">Rua/Avenida</label>
                     <input className="input" value={patientForm.addrStreet ?? ""} onChange={(e) => setP("addrStreet", e.target.value)} />

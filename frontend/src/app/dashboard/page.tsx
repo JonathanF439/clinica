@@ -87,7 +87,7 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-8 py-8">
+        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-8">
 
           {/* Page header */}
           <div className="mb-8 flex items-start justify-between">
@@ -109,7 +109,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stat cards */}
-          <div className="mb-8 grid grid-cols-4 gap-4">
+          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             {(
               [
                 {
@@ -158,7 +158,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Today's schedule */}
-          <div className="mb-6 overflow-hidden rounded-xl border border-[#e4e4e4] bg-white">
+          <div className="mb-6 overflow-x-auto rounded-xl border border-[#e4e4e4] bg-white">
             <div className="flex items-center justify-between border-b border-[#e4e4e4] px-5 py-4">
               <h2 className="text-sm font-semibold text-zinc-900">
                 Agenda de Hoje
@@ -220,7 +220,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick links */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <Link
               href="/pacientes"
               className="group rounded-xl border border-[#e4e4e4] bg-white p-5 transition-all hover:border-blue-200 hover:shadow-sm"

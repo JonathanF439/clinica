@@ -56,7 +56,7 @@ export function EditAppointmentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl max-h-[90vh]">
+      <div className="flex w-full max-w-[95vw] flex-col rounded-xl bg-white shadow-xl max-h-[90vh] sm:max-w-3xl">
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
           <div>
             <h2 className="text-base font-semibold text-zinc-900">Editar Agendamento</h2>
@@ -71,7 +71,7 @@ export function EditAppointmentModal({
           <div className="space-y-5 p-6">
 
             {/* Data, Horário, Status */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="label">Data</label>
                 <input type="date" className="input" value={form.date ?? ""} onChange={(e) => set("date", e.target.value)} />
@@ -100,7 +100,7 @@ export function EditAppointmentModal({
             </div>
 
             {/* Categoria, Tipo, Recepcionista */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="label">Categoria</label>
                 <select className="input" value={form.category ?? ""} onChange={(e) => set("category", e.target.value)}>
@@ -130,7 +130,7 @@ export function EditAppointmentModal({
             </div>
 
             {/* Observações lado a lado */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="label">Obs. Agenda</label>
                 <textarea className="input min-h-20 resize-none" value={form.obsAgenda ?? ""} onChange={(e) => set("obsAgenda", e.target.value)} />

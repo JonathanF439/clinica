@@ -124,7 +124,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex w-full max-w-5xl flex-col rounded-xl bg-white shadow-xl max-h-[90vh]">
+      <div className="flex w-full max-w-[95vw] flex-col rounded-xl bg-white shadow-xl max-h-[90vh] lg:max-w-5xl">
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
           <h2 className="text-base font-semibold text-zinc-900">
             {patient ? "Editar Paciente" : "Novo Paciente"}
@@ -140,7 +140,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
             {/* Dados principais */}
             <section>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Dados Principais</p>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="col-span-4">
                   <label className="label">Nome Completo *</label>
                   <input className="input" required value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
@@ -199,7 +199,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
             {/* Contato */}
             <section>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Contato</p>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <label className="label">Celular 1</label>
                   <input className="input" value={form.phone ?? ""} onChange={(e) => set("phone", maskPhone(e.target.value))} placeholder="(00) 00000-0000" />
@@ -230,7 +230,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
             {/* Endereço */}
             <section>
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Endereço</p>
-              <div className="grid grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
                 <div className="col-span-4">
                   <label className="label">Rua/Avenida</label>
                   <input className="input" value={form.addrStreet ?? ""} onChange={(e) => set("addrStreet", e.target.value)} />

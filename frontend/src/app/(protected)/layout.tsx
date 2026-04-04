@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { Sidebar } from "@/components/layout/Sidebar";
 
@@ -12,6 +13,7 @@ export default function ProtectedLayout({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -31,8 +33,31 @@ export default function ProtectedLayout({
 
   return (
     <div className="flex min-h-screen bg-zinc-50 font-sans">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      {/* Mobile top header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4">
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
+            CT
+          </div>
+          <span className="text-sm font-semibold text-zinc-900">CLÍNICA TAYAH</span>
+        </div>
+        <div className="w-8" />
+      </header>
+
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+
+      <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
+        {children}
+      </main>
     </div>
   );
 }

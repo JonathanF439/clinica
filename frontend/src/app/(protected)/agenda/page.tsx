@@ -69,9 +69,9 @@ export default function AgendaPage() {
   };
 
   return (
-    <div className="flex gap-5 p-6 h-full">
+    <div className="flex flex-col gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6">
       {/* Left column — calendar */}
-      <div className="w-56 shrink-0 space-y-4">
+      <div className="flex gap-3 overflow-x-auto lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-x-visible lg:space-y-4">
         <MiniCalendar
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
@@ -121,7 +121,7 @@ export default function AgendaPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />

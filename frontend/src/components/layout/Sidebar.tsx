@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,12 @@ const ROLE_LABELS: Record<string, string> = {
   ENFERMAGEM: "Enfermagem",
 };
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -42,31 +48,41 @@ export function Sidebar() {
     router.push("/login");
   };
 
-  return (
+  const sidebarContent = (isMobile: boolean) => (
     <aside
       className={cn(
-        "relative flex flex-col bg-white border-r border-zinc-200 transition-all duration-300 shrink-0",
-        collapsed ? "w-16" : "w-60"
+        "flex flex-col bg-white border-r border-zinc-200 transition-all duration-300 h-full",
+        isMobile ? "w-64" : cn("relative shrink-0", collapsed ? "w-16" : "w-60")
       )}
     >
-      {/* Toggle button */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-800 shadow-sm"
-      >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
+      {/* Toggle button — desktop only */}
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-800 shadow-sm"
+        >
+          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
+      )}
 
       {/* Header */}
       <div className="flex h-16 items-center gap-3 border-b border-zinc-100 px-4">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
           CT
         </div>
-        {!collapsed && (
-          <div className="overflow-hidden">
+        {(!collapsed || isMobile) && (
+          <div className="flex-1 overflow-hidden">
             <p className="truncate text-sm font-semibold text-zinc-900">CLÍNICA TAYAH</p>
             <p className="truncate text-[11px] text-zinc-400">Oftalmologia</p>
           </div>
+        )}
+        {isMobile && (
+          <button
+            onClick={onMobileClose}
+            className="ml-auto rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100"
+          >
+            <X size={16} />
+          </button>
         )}
       </div>
 
@@ -74,13 +90,14 @@ export function Sidebar() {
       <div className="p-3">
         <Link
           href="/agendamento/novo"
+          onClick={isMobile ? onMobileClose : undefined}
           className={cn(
             "flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors",
-            collapsed && "justify-center"
+            !isMobile && collapsed && "justify-center"
           )}
         >
           <Plus size={16} />
-          {!collapsed && <span>Novo Agendamento</span>}
+          {(!collapsed || isMobile) && <span>Novo Agendamento</span>}
         </Link>
       </div>
 
@@ -92,16 +109,17 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={isMobile ? onMobileClose : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
                   ? "bg-blue-50 text-blue-700 font-medium"
                   : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900",
-                collapsed && "justify-center"
+                !isMobile && collapsed && "justify-center"
               )}
             >
               <Icon size={18} className="shrink-0" />
-              {!collapsed && <span>{label}</span>}
+              {(!collapsed || isMobile) && <span>{label}</span>}
             </Link>
           );
         })}
@@ -109,11 +127,11 @@ export function Sidebar() {
 
       {/* User footer */}
       <div className="border-t border-zinc-100 p-3">
-        <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
+        <div className={cn("flex items-center gap-2", !isMobile && collapsed && "justify-center")}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
             <User size={15} />
           </div>
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-xs font-medium text-zinc-900">{user?.name}</p>
               <p className="truncate text-[11px] text-zinc-400">
@@ -121,7 +139,7 @@ export function Sidebar() {
               </p>
             </div>
           )}
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <button
               onClick={handleLogout}
               className="shrink-0 rounded p-1 text-zinc-400 hover:text-red-500"
@@ -131,7 +149,7 @@ export function Sidebar() {
             </button>
           )}
         </div>
-        {collapsed && (
+        {!isMobile && collapsed && (
           <button
             onClick={handleLogout}
             className="mt-2 flex w-full justify-center rounded p-1 text-zinc-400 hover:text-red-500"
@@ -142,5 +160,32 @@ export function Sidebar() {
         )}
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 z-50 h-full transition-transform duration-300 lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent(true)}
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block">
+        {sidebarContent(false)}
+      </div>
+    </>
   );
 }

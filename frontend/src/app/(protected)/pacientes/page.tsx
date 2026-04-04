@@ -82,8 +82,8 @@ export default function PacientesPage() {
       </div>
 
       {/* Search + Filter */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="relative max-w-sm flex-1">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
@@ -107,7 +107,7 @@ export default function PacientesPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />

@@ -51,7 +51,7 @@ function DoctorModal({
             <label className="label">Nome Completo *</label>
             <input className="input" required value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="label">CRM *</label>
               <input className="input" required value={form.crm} onChange={(e) => set("crm", e.target.value)} placeholder="00000-AM" />
@@ -61,7 +61,7 @@ function DoctorModal({
               <input className="input" required value={form.specialty} onChange={(e) => set("specialty", e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="label">CPF</label>
               <input className="input" value={form.cpf ?? ""} onChange={(e) => set("cpf", e.target.value)} />
@@ -132,7 +132,7 @@ export default function MedicosPage() {
         </button>
       </div>
 
-      <div className="rounded-xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
