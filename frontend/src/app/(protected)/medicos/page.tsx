@@ -30,7 +30,8 @@ function DoctorModal({
     doctor ? { name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, cpf: doctor.cpf ?? "", phone: doctor.phone ?? "", email: doctor.email ?? "" }
            : emptyForm()
   );
-  const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const set = (k: keyof typeof form, v: string) => { setForm((f) => ({ ...f, [k]: v })); setErrors((prev) => ({ ...prev, [k]: "" })); };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -44,21 +45,32 @@ function DoctorModal({
           </button>
         </div>
         <form
-          onSubmit={(e) => { e.preventDefault(); onSave(form); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const newErrors: Record<string, string> = {};
+            if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
+            if (!form.crm.trim()) newErrors.crm = "CRM é obrigatório";
+            if (!form.specialty.trim()) newErrors.specialty = "Especialidade é obrigatória";
+            if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+            onSave(form);
+          }}
           className="space-y-3 p-5"
         >
           <div>
             <label className="label">Nome Completo *</label>
-            <input className="input" required value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
+            <input className={`input ${errors.name ? "border-red-400" : ""}`} value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
+            {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="label">CRM *</label>
-              <input className="input" required value={form.crm} onChange={(e) => set("crm", e.target.value)} placeholder="00000-AM" />
+              <input className={`input ${errors.crm ? "border-red-400" : ""}`} value={form.crm} onChange={(e) => set("crm", e.target.value)} placeholder="00000-AM" />
+              {errors.crm && <p className="mt-0.5 text-xs text-red-500">{errors.crm}</p>}
             </div>
             <div>
               <label className="label">Especialidade *</label>
-              <input className="input" required value={form.specialty} onChange={(e) => set("specialty", e.target.value)} />
+              <input className={`input ${errors.specialty ? "border-red-400" : ""}`} value={form.specialty} onChange={(e) => set("specialty", e.target.value)} />
+              {errors.specialty && <p className="mt-0.5 text-xs text-red-500">{errors.specialty}</p>}
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

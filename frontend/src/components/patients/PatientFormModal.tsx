@@ -58,6 +58,7 @@ const emptyForm = (): Omit<Patient, "id"> => ({
 export function PatientFormModal({ patient, onClose, onSave, isSaving }: PatientFormModalProps) {
   const [form, setForm] = useState<Omit<Patient, "id">>(emptyForm());
   const [cpfError, setCpfError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (patient) {
@@ -87,10 +88,17 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
     if (form.cpf && !validateCPF(form.cpf)) {
       setCpfError("CPF inválido");
+      newErrors.cpf = "CPF inválido";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
     const isIncomplete = !form.cpf || form.cpf.trim() === "";
     const str = (v: unknown) => (v === "" || v === null ? undefined : (v as string));
     const payload = {
@@ -143,7 +151,12 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="col-span-4">
                   <label className="label">Nome Completo *</label>
-                  <input className="input" required value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
+                  <input
+                    className={`input ${errors.name ? "border-red-400" : ""}`}
+                    value={form.name}
+                    onChange={(e) => { set("name", e.target.value.toUpperCase()); setErrors((prev) => ({ ...prev, name: "" })); }}
+                  />
+                  {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="label">CPF</label>

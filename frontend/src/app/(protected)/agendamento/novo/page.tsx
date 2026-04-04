@@ -26,6 +26,8 @@ export default function NovoAgendamentoPage() {
   const [showPatientModal, setShowPatientModal] = useState(false);
   const queryClient = useQueryClient();
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const [form, setForm] = useState<Omit<Appointment, "id" | "patient" | "doctor">>({
     patientId: "",
     doctorId: "",
@@ -91,7 +93,13 @@ export default function NovoAgendamentoPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.patientId || !form.doctorId) return;
+    const newErrors: Record<string, string> = {};
+    if (!form.patientId) newErrors.patientId = "Selecione um paciente";
+    if (!form.doctorId) newErrors.doctorId = "Selecione um médico";
+    if (!form.date) newErrors.date = "Data é obrigatória";
+    if (!form.time) newErrors.time = "Horário é obrigatório";
+    if (Object.keys(newErrors).length > 0) { setFormErrors(newErrors); return; }
+    setFormErrors({});
     createMutation.mutate(form);
   };
 
@@ -125,6 +133,7 @@ export default function NovoAgendamentoPage() {
               onChange={(e) => {
                 setPatientSearch(e.target.value);
                 setShowPatientResults(true);
+                setFormErrors((prev) => ({ ...prev, patientId: "" }));
                 if (!e.target.value) { setSelectedPatient(null); set("patientId", ""); }
               }}
               onFocus={() => setShowPatientResults(true)}
@@ -144,6 +153,7 @@ export default function NovoAgendamentoPage() {
               </ul>
             )}
           </div>
+          {formErrors.patientId && <p className="mt-0.5 text-xs text-red-500">{formErrors.patientId}</p>}
           {selectedPatient && (
             <div className="mt-1.5 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-1.5 text-xs text-blue-700">
               <span>Selecionado: {selectedPatient.name}{selectedPatient.cpf ? ` — ${selectedPatient.cpf}` : ""}</span>
@@ -159,23 +169,26 @@ export default function NovoAgendamentoPage() {
         {/* Doctor */}
         <div>
           <label className="label">Médico *</label>
-          <select className="input" required value={form.doctorId} onChange={(e) => set("doctorId", e.target.value)}>
+          <select className={`input ${formErrors.doctorId ? "border-red-400" : ""}`} value={form.doctorId} onChange={(e) => { set("doctorId", e.target.value); setFormErrors((prev) => ({ ...prev, doctorId: "" })); }}>
             <option value="">Selecionar médico...</option>
             {doctors.map((d) => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
+          {formErrors.doctorId && <p className="mt-0.5 text-xs text-red-500">{formErrors.doctorId}</p>}
         </div>
 
         {/* Date and time */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="label">Data *</label>
-            <input type="date" className="input" required value={form.date} onChange={(e) => set("date", e.target.value)} />
+            <input type="date" className={`input ${formErrors.date ? "border-red-400" : ""}`} value={form.date} onChange={(e) => { set("date", e.target.value); setFormErrors((prev) => ({ ...prev, date: "" })); }} />
+            {formErrors.date && <p className="mt-0.5 text-xs text-red-500">{formErrors.date}</p>}
           </div>
           <div>
             <label className="label">Horário *</label>
-            <input type="time" className="input" required value={form.time} onChange={(e) => set("time", e.target.value)} />
+            <input type="time" className={`input ${formErrors.time ? "border-red-400" : ""}`} value={form.time} onChange={(e) => { set("time", e.target.value); setFormErrors((prev) => ({ ...prev, time: "" })); }} />
+            {formErrors.time && <p className="mt-0.5 text-xs text-red-500">{formErrors.time}</p>}
           </div>
         </div>
 
@@ -237,7 +250,7 @@ export default function NovoAgendamentoPage() {
           </button>
           <button
             type="submit"
-            disabled={createMutation.isPending || !form.patientId || !form.doctorId}
+            disabled={createMutation.isPending}
             className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {createMutation.isPending ? "Salvando..." : "Agendar"}
