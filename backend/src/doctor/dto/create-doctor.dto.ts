@@ -31,4 +31,9 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  userId?: string;
 }

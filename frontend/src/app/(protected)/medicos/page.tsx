@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, X, Stethoscope } from "lucide-react";
 import { doctorService } from "@/services/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Doctor } from "@/types/clinic";
 
 const emptyForm = (): Omit<Doctor, "id"> => ({
@@ -105,6 +106,7 @@ export default function MedicosPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const queryClient = useQueryClient();
+  const { canCreateDoctor, canEditDoctor } = usePermissions();
 
   const { data: doctors = [], isLoading } = useQuery({
     queryKey: ["doctors"],
@@ -135,13 +137,15 @@ export default function MedicosPage() {
           <h1 className="text-xl font-bold text-zinc-900">Médicos</h1>
           <p className="text-sm text-zinc-400">{doctors.length} cadastrados</p>
         </div>
-        <button
-          onClick={() => setIsAdding(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Plus size={16} />
-          Novo Médico
-        </button>
+        {canCreateDoctor && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus size={16} />
+            Novo Médico
+          </button>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
@@ -162,7 +166,7 @@ export default function MedicosPage() {
                 <th className="px-4 py-3">CRM</th>
                 <th className="px-4 py-3">Especialidade</th>
                 <th className="px-4 py-3">Telefone</th>
-                <th className="px-4 py-3 text-right">Ações</th>
+                {canEditDoctor && <th className="px-4 py-3 text-right">Ações</th>}
               </tr>
             </thead>
             <tbody>
@@ -172,16 +176,18 @@ export default function MedicosPage() {
                   <td className="px-4 py-3 text-xs font-mono text-zinc-500">{doctor.crm}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500">{doctor.specialty}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500">{doctor.phone ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => setEditingDoctor(doctor)}
-                        className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                    </div>
-                  </td>
+                  {canEditDoctor && (
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => setEditingDoctor(doctor)}
+                          className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

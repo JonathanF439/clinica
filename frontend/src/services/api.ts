@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Doctor, Patient, Appointment, Procedure } from "@/types/clinic";
+import type { Doctor, Patient, Appointment, Procedure, Permission, User, CreateUserPayload } from "@/types/clinic";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
@@ -62,4 +62,23 @@ export const appointmentService = {
 // ─── Procedure Service ─────────────────────────────────────────────────────────
 export const procedureService = {
   findAll: () => api.get<Procedure[]>("/procedures").then((r) => r.data),
+};
+
+// ─── Appointment Status ────────────────────────────────────────────────────────
+export const appointmentStatusService = {
+  update: (id: string, status: string) =>
+    api.patch<Appointment>(`/appointments/${id}/status`, { status }).then((r) => r.data),
+};
+
+// ─── Permission Service ────────────────────────────────────────────────────────
+export const permissionService = {
+  findAll: () => api.get<Permission[]>("/permissions").then((r) => r.data),
+  update: (role: string, resource: string, action: string, allowed: boolean) =>
+    api.patch<Permission>("/permissions", { role, resource, action, allowed }).then((r) => r.data),
+};
+
+// ─── User Service ──────────────────────────────────────────────────────────────
+export const userService = {
+  findAll: () => api.get<User[]>("/users").then((r) => r.data),
+  create: (data: CreateUserPayload) => api.post<User>("/users", data).then((r) => r.data),
 };

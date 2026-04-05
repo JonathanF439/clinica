@@ -9,6 +9,7 @@ import { DoctorModule } from './doctor/doctor.module';
 import { PatientModule } from './patient/patient.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { ProcedureModule } from './procedure/procedure.module';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ProcedureModule } from './procedure/procedure.module';
     PatientModule,
     AppointmentModule,
     ProcedureModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

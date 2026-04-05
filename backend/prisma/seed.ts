@@ -3,6 +3,50 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+// Default permission matrix
+// ADMIN is a superuser — not stored, checked in guard
+const DEFAULT_PERMISSIONS: { role: UserRole; resource: string; action: string; allowed: boolean }[] = [
+  // RECEPCIONISTA
+  { role: UserRole.RECEPCIONISTA, resource: 'appointment', action: 'create',        allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'appointment', action: 'read',          allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'appointment', action: 'update',        allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'appointment', action: 'change_status', allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'patient',     action: 'create',        allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'patient',     action: 'read',          allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'patient',     action: 'update',        allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'doctor',      action: 'create',        allowed: false },
+  { role: UserRole.RECEPCIONISTA, resource: 'doctor',      action: 'read',          allowed: true  },
+  { role: UserRole.RECEPCIONISTA, resource: 'doctor',      action: 'update',        allowed: false },
+  { role: UserRole.RECEPCIONISTA, resource: 'user',        action: 'create',        allowed: false },
+  { role: UserRole.RECEPCIONISTA, resource: 'user',        action: 'read',          allowed: false },
+  // ENFERMAGEM
+  { role: UserRole.ENFERMAGEM,    resource: 'appointment', action: 'create',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'appointment', action: 'read',          allowed: true  },
+  { role: UserRole.ENFERMAGEM,    resource: 'appointment', action: 'update',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'appointment', action: 'change_status', allowed: true  },
+  { role: UserRole.ENFERMAGEM,    resource: 'patient',     action: 'create',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'patient',     action: 'read',          allowed: true  },
+  { role: UserRole.ENFERMAGEM,    resource: 'patient',     action: 'update',        allowed: true  },
+  { role: UserRole.ENFERMAGEM,    resource: 'doctor',      action: 'create',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'doctor',      action: 'read',          allowed: true  },
+  { role: UserRole.ENFERMAGEM,    resource: 'doctor',      action: 'update',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'user',        action: 'create',        allowed: false },
+  { role: UserRole.ENFERMAGEM,    resource: 'user',        action: 'read',          allowed: false },
+  // MEDICO
+  { role: UserRole.MEDICO,        resource: 'appointment', action: 'create',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'appointment', action: 'read',          allowed: true  },
+  { role: UserRole.MEDICO,        resource: 'appointment', action: 'update',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'appointment', action: 'change_status', allowed: false },
+  { role: UserRole.MEDICO,        resource: 'patient',     action: 'create',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'patient',     action: 'read',          allowed: true  },
+  { role: UserRole.MEDICO,        resource: 'patient',     action: 'update',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'doctor',      action: 'create',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'doctor',      action: 'read',          allowed: true  },
+  { role: UserRole.MEDICO,        resource: 'doctor',      action: 'update',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'user',        action: 'create',        allowed: false },
+  { role: UserRole.MEDICO,        resource: 'user',        action: 'read',          allowed: false },
+];
+
 const PROCEDURES = [
   { code: '001', name: 'Aspiração' },
   { code: '002', name: 'Avaliação' },
@@ -73,7 +117,7 @@ async function main() {
   }
   console.log(`${PROCEDURES.length} procedimentos criados`);
 
-  // Doctors
+  // Doctors — seed first without userId, then link medico user after users are created
   const doctorRecords: Record<string, string> = {};
   for (const doc of INITIAL_DOCTORS) {
     const created = await prisma.doctor.upsert({
@@ -96,7 +140,7 @@ async function main() {
     update: {},
     create: { name: 'Administrador', email: 'admin@clinica.com', password: hashedAdmin, role: UserRole.ADMIN },
   });
-  await prisma.user.upsert({
+  const medicoUser = await prisma.user.upsert({
     where: { email: 'medico@clinica.com' },
     update: {},
     create: { name: 'DR. DAVID TAYAH', email: 'medico@clinica.com', password: hashedMedico, role: UserRole.MEDICO },
@@ -112,6 +156,24 @@ async function main() {
     create: { name: 'Enfermagem', email: 'enfermagem@clinica.com', password: hashedEnfermagem, role: UserRole.ENFERMAGEM },
   });
   console.log('4 usuários criados');
+
+  // Link DR. DAVID TAYAH doctor record to the medico user account
+  const davidDoctorId = doctorRecords['12345-AM'];
+  await prisma.doctor.update({
+    where: { id: davidDoctorId },
+    data: { userId: medicoUser.id },
+  });
+  console.log('Médico vinculado ao usuário');
+
+  // Seed default permissions
+  for (const perm of DEFAULT_PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { role_resource_action: { role: perm.role, resource: perm.resource, action: perm.action } },
+      update: { allowed: perm.allowed },
+      create: perm,
+    });
+  }
+  console.log(`${DEFAULT_PERMISSIONS.length} permissões criadas`);
 
   // Sample patient
   const patient = await prisma.patient.upsert({

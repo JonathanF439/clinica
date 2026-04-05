@@ -97,4 +97,20 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  createdAt?: string;
+}
+
+export interface Permission {
+  id: string;
+  role: UserRole;
+  resource: string;
+  action: string;
+  allowed: boolean;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: 'RECEPCIONISTA' | 'ENFERMAGEM';
 }

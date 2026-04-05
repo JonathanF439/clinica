@@ -14,15 +14,20 @@ import {
   ChevronRight,
   User,
   X,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { usePermissions } from "@/hooks/usePermissions";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/agenda", label: "Agenda", icon: Calendar },
-  { href: "/pacientes", label: "Pacientes", icon: Users },
-  { href: "/medicos", label: "Médicos", icon: Stethoscope },
+const ALL_NAV_ITEMS = [
+  { href: "/dashboard",         label: "Dashboard",  icon: LayoutDashboard, adminOnly: false },
+  { href: "/agenda",            label: "Agenda",      icon: Calendar,       adminOnly: false },
+  { href: "/pacientes",         label: "Pacientes",   icon: Users,          adminOnly: false },
+  { href: "/medicos",           label: "Médicos",     icon: Stethoscope,    adminOnly: false },
+  { href: "/admin/usuarios",    label: "Usuários",    icon: ShieldCheck,    adminOnly: true  },
+  { href: "/admin/permissoes",  label: "Permissões",  icon: Lock,           adminOnly: true  },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -42,6 +47,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { isAdmin, canCreateAppointment } = usePermissions();
+
+  const navItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const handleLogout = async () => {
     await logout();
@@ -87,23 +95,25 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       </div>
 
       {/* New appointment button */}
-      <div className="p-3">
-        <Link
-          href="/agendamento/novo"
-          onClick={isMobile ? onMobileClose : undefined}
-          className={cn(
-            "flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors",
-            !isMobile && collapsed && "justify-center"
-          )}
-        >
-          <Plus size={16} />
-          {(!collapsed || isMobile) && <span>Novo Agendamento</span>}
-        </Link>
-      </div>
+      {canCreateAppointment && (
+        <div className="p-3">
+          <Link
+            href="/agendamento/novo"
+            onClick={isMobile ? onMobileClose : undefined}
+            className={cn(
+              "flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors",
+              !isMobile && collapsed && "justify-center"
+            )}
+          >
+            <Plus size={16} />
+            {(!collapsed || isMobile) && <span>Novo Agendamento</span>}
+          </Link>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-2 py-2">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname.startsWith(href);
           return (
             <Link

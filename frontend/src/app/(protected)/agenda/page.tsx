@@ -4,7 +4,8 @@ import { useState } from "react";
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, Pencil, Calendar } from "lucide-react";
-import { doctorService, appointmentService, procedureService } from "@/services/api";
+import { doctorService, appointmentService, procedureService, appointmentStatusService } from "@/services/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Appointment } from "@/types/clinic";
 import { MiniCalendar } from "@/components/agenda/MiniCalendar";
 import { AppointmentDetailsModal } from "@/components/agenda/AppointmentDetailsModal";
@@ -26,6 +27,7 @@ export default function AgendaPage() {
   const [expandedApptId, setExpandedApptId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+  const { canChangeStatus, canEditAppointment, isMedico } = usePermissions();
 
   const { data: doctors = [] } = useQuery({
     queryKey: ["doctors"],
@@ -57,7 +59,7 @@ export default function AgendaPage() {
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      appointmentService.update(id, { status }),
+      appointmentStatusService.update(id, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["appointments"] }),
   });
 
@@ -93,32 +95,34 @@ export default function AgendaPage() {
 
       {/* Right column — appointments */}
       <div className="flex-1 min-w-0">
-        {/* Doctor tabs */}
-        <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
-          <button
-            onClick={() => setSelectedDoctorId("all")}
-            className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-              selectedDoctorId === "all"
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-            }`}
-          >
-            Todos
-          </button>
-          {doctors.map((d) => (
+        {/* Doctor tabs — hidden for MÉDICO (backend already filters to their own) */}
+        {!isMedico && (
+          <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
             <button
-              key={d.id}
-              onClick={() => setSelectedDoctorId(d.id)}
+              onClick={() => setSelectedDoctorId("all")}
               className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                selectedDoctorId === d.id
+                selectedDoctorId === "all"
                   ? "border-blue-600 bg-blue-600 text-white"
                   : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
               }`}
             >
-              {d.name.replace(/^DR[A]?\. /, "")}
+              Todos
             </button>
-          ))}
-        </div>
+            {doctors.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDoctorId(d.id)}
+                className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  selectedDoctorId === d.id
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                }`}
+              >
+                {d.name.replace(/^DR[A]?\. /, "")}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Table */}
         <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
@@ -174,16 +178,22 @@ export default function AgendaPage() {
                       {appt.procedureName ?? "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={appt.status}
-                        onChange={(e) => statusMutation.mutate({ id: appt.id, status: e.target.value })}
-                        onClick={(e) => e.stopPropagation()}
-                        className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer ${STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}
-                      >
-                        {APPOINTMENT_STATUSES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
+                      {canChangeStatus ? (
+                        <select
+                          value={appt.status}
+                          onChange={(e) => statusMutation.mutate({ id: appt.id, status: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer ${STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}
+                        >
+                          {APPOINTMENT_STATUSES.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}>
+                          {appt.status}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
@@ -194,13 +204,15 @@ export default function AgendaPage() {
                         >
                           <Eye size={14} />
                         </button>
-                        <button
-                          onClick={() => setEditingAppt(appt)}
-                          className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                          title="Editar"
-                        >
-                          <Pencil size={14} />
-                        </button>
+                        {canEditAppointment && (
+                          <button
+                            onClick={() => setEditingAppt(appt)}
+                            className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                            title="Editar"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

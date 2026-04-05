@@ -23,6 +23,7 @@ model User {
   role      UserRole @default(RECEPCIONISTA)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  doctor    Doctor?
 
   @@map("users")
 }
@@ -35,11 +36,24 @@ model Doctor {
   cpf          String?
   phone        String?
   email        String?
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   appointments Appointment[]
 
   @@map("doctors")
+}
+
+model Permission {
+  id       String   @id @default(cuid())
+  role     UserRole
+  resource String
+  action   String
+  allowed  Boolean  @default(true)
+
+  @@unique([role, resource, action])
+  @@map("permissions")
 }
 
 model Patient {

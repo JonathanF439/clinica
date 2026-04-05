@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, ChevronDown, ChevronUp, Pencil, Users } from "lucide-react";
 import { patientService, appointmentService } from "@/services/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Patient } from "@/types/clinic";
 import { PatientFormModal } from "@/components/patients/PatientFormModal";
 import { AppointmentStatusBadge } from "@/components/agenda/AppointmentStatusBadge";
@@ -17,6 +18,7 @@ export default function PacientesPage() {
   const [filterIncomplete, setFilterIncomplete] = useState(false);
 
   const queryClient = useQueryClient();
+  const { canCreatePatient, canEditPatient } = usePermissions();
 
   // Debounce search
   useEffect(() => {
@@ -72,13 +74,15 @@ export default function PacientesPage() {
           <h1 className="text-xl font-bold text-zinc-900">Pacientes</h1>
           <p className="text-sm text-zinc-400">{filtered.length} cadastrados</p>
         </div>
-        <button
-          onClick={() => setIsAddingPatient(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Plus size={16} />
-          Novo Paciente
-        </button>
+        {canCreatePatient && (
+          <button
+            onClick={() => setIsAddingPatient(true)}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus size={16} />
+            Novo Paciente
+          </button>
+        )}
       </div>
 
       {/* Search + Filter */}
@@ -125,7 +129,7 @@ export default function PacientesPage() {
                 <th className="px-4 py-3">CPF</th>
                 <th className="px-4 py-3">Cartão SUS</th>
                 <th className="px-4 py-3">Telefone</th>
-                <th className="px-4 py-3 text-right">Ações</th>
+                {canEditPatient && <th className="px-4 py-3 text-right">Ações</th>}
               </tr>
             </thead>
             <tbody>
@@ -153,16 +157,18 @@ export default function PacientesPage() {
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.cpf ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.susCard ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.phone ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setEditingPatient(patient); }}
-                          className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                      </div>
-                    </td>
+                    {canEditPatient && (
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingPatient(patient); }}
+                            className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
 
                   {/* Expanded appointment history */}

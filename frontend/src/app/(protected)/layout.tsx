@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Sidebar } from "@/components/layout/Sidebar";
 
 export default function ProtectedLayout({
@@ -13,13 +14,21 @@ export default function ProtectedLayout({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { canAccessRoute } = usePermissions();
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (!isLoading && user && !canAccessRoute(pathname)) {
+      router.replace("/agenda");
+    }
+  }, [user, isLoading, pathname, canAccessRoute, router]);
 
   if (isLoading) {
     return (

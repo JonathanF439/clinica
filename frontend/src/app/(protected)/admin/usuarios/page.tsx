@@ -1,0 +1,232 @@
+"use client";
+
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, X, ShieldCheck } from "lucide-react";
+import { userService } from "@/services/api";
+import type { User, CreateUserPayload } from "@/types/clinic";
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Administrador",
+  MEDICO: "Médico",
+  RECEPCIONISTA: "Recepcionista",
+  ENFERMAGEM: "Enfermagem",
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  ADMIN: "bg-purple-100 text-purple-700",
+  MEDICO: "bg-blue-100 text-blue-700",
+  RECEPCIONISTA: "bg-emerald-100 text-emerald-700",
+  ENFERMAGEM: "bg-orange-100 text-orange-700",
+};
+
+function CreateUserModal({
+  onClose,
+  onSave,
+  isSaving,
+  error,
+}: {
+  onClose: () => void;
+  onSave: (data: CreateUserPayload) => void;
+  isSaving?: boolean;
+  error?: string;
+}) {
+  const [form, setForm] = useState<CreateUserPayload>({
+    name: "",
+    email: "",
+    password: "",
+    role: "RECEPCIONISTA",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const set = (k: keyof CreateUserPayload, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((prev) => ({ ...prev, [k]: "" }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
+    if (!form.email.trim()) newErrors.email = "E-mail é obrigatório";
+    if (!form.password || form.password.length < 6)
+      newErrors.password = "Senha deve ter no mínimo 6 caracteres";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    onSave(form);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+          <h2 className="text-base font-semibold text-zinc-900">Novo Usuário</h2>
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 text-zinc-500">
+            <X size={16} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3 p-5">
+          <div>
+            <label className="label">Nome Completo *</label>
+            <input
+              className={`input ${errors.name ? "border-red-400" : ""}`}
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+            />
+            {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
+          </div>
+          <div>
+            <label className="label">E-mail *</label>
+            <input
+              type="email"
+              className={`input ${errors.email ? "border-red-400" : ""}`}
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+            />
+            {errors.email && <p className="mt-0.5 text-xs text-red-500">{errors.email}</p>}
+          </div>
+          <div>
+            <label className="label">Senha *</label>
+            <input
+              type="password"
+              className={`input ${errors.password ? "border-red-400" : ""}`}
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+            />
+            {errors.password && <p className="mt-0.5 text-xs text-red-500">{errors.password}</p>}
+          </div>
+          <div>
+            <label className="label">Perfil *</label>
+            <select
+              className="input"
+              value={form.role}
+              onChange={(e) => set("role", e.target.value)}
+            >
+              <option value="RECEPCIONISTA">Recepcionista</option>
+              <option value="ENFERMAGEM">Enfermagem</option>
+            </select>
+          </div>
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSaving ? "Criando..." : "Criar Usuário"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function UsuariosPage() {
+  const [isAdding, setIsAdding] = useState(false);
+  const [createError, setCreateError] = useState<string>("");
+  const queryClient = useQueryClient();
+
+  const { data: users = [], isLoading } = useQuery<User[]>({
+    queryKey: ["users"],
+    queryFn: userService.findAll,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateUserPayload) => userService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      setIsAdding(false);
+      setCreateError("");
+    },
+    onError: (err: { response?: { status?: number } }) => {
+      if (err?.response?.status === 409) {
+        setCreateError("E-mail já cadastrado no sistema.");
+      } else {
+        setCreateError("Erro ao criar usuário. Tente novamente.");
+      }
+    },
+  });
+
+  const formatDate = (d?: string) => {
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("pt-BR");
+  };
+
+  return (
+    <div className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900">Usuários</h1>
+          <p className="text-sm text-zinc-400">{users.length} cadastrados</p>
+        </div>
+        <button
+          onClick={() => { setIsAdding(true); setCreateError(""); }}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          <Plus size={16} />
+          Novo Usuário
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          </div>
+        ) : users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+            <ShieldCheck size={32} className="mb-2 opacity-30" />
+            <p className="text-sm">Nenhum usuário cadastrado</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+                <th className="px-4 py-3">Nome</th>
+                <th className="px-4 py-3">E-mail</th>
+                <th className="px-4 py-3">Perfil</th>
+                <th className="px-4 py-3">Cadastrado em</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
+                  <td className="px-4 py-3 font-medium text-zinc-900">{user.name}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-500">{user.email}</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-600"}`}>
+                      {ROLE_LABELS[user.role] ?? user.role}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-zinc-500">{formatDate(user.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {isAdding && (
+        <CreateUserModal
+          onClose={() => { setIsAdding(false); setCreateError(""); }}
+          onSave={(data) => createMutation.mutate(data)}
+          isSaving={createMutation.isPending}
+          error={createError}
+        />
+      )}
+    </div>
+  );
+}
