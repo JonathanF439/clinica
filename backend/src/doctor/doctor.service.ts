@@ -18,11 +18,16 @@ export class DoctorService {
   }
 
   create(dto: CreateDoctorDto) {
-    return this.prisma.doctor.create({ data: dto });
+    return this.prisma.doctor.create({
+      data: { ...dto, crm: dto.crm || null },
+    });
   }
 
   async update(id: string, dto: UpdateDoctorDto) {
     await this.findById(id);
-    return this.prisma.doctor.update({ where: { id }, data: dto });
+    return this.prisma.doctor.update({
+      where: { id },
+      data: { ...dto, crm: dto.crm || null },
+    });
   }
 }
