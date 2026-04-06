@@ -45,6 +45,8 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const forceExpanded = pathname.startsWith("/agendamento");
+  const isCollapsed = collapsed && !forceExpanded;
   const router = useRouter();
   const { user, logout } = useAuth();
   const { isAdmin, canCreateAppointment } = usePermissions();
@@ -60,7 +62,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     <aside
       className={cn(
         "flex flex-col bg-white border-r border-zinc-200 transition-all duration-300 h-full",
-        isMobile ? "w-64" : cn("relative shrink-0", collapsed ? "w-16" : "w-60")
+        isMobile ? "w-64" : cn("relative shrink-0", isCollapsed ? "w-16" : "w-60")
       )}
     >
       {/* Toggle button — desktop only */}
@@ -69,7 +71,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-800 shadow-sm"
         >
-          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
         </button>
       )}
 
@@ -78,7 +80,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
           CT
         </div>
-        {(!collapsed || isMobile) && (
+        {(!isCollapsed || isMobile) && (
           <div className="flex-1 overflow-hidden">
             <p className="truncate text-sm font-semibold text-zinc-900">CLÍNICA TAYAH</p>
             <p className="truncate text-[11px] text-zinc-400">Oftalmologia</p>
@@ -102,11 +104,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             onClick={isMobile ? onMobileClose : undefined}
             className={cn(
               "flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors",
-              !isMobile && collapsed && "justify-center"
+              !isMobile && isCollapsed && "justify-center"
             )}
           >
             <Plus size={16} />
-            {(!collapsed || isMobile) && <span>Novo Agendamento</span>}
+            {(!isCollapsed || isMobile) && <span>Novo Agendamento</span>}
           </Link>
         </div>
       )}
@@ -125,11 +127,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 isActive
                   ? "bg-blue-50 text-blue-700 font-medium"
                   : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900",
-                !isMobile && collapsed && "justify-center"
+                !isMobile && isCollapsed && "justify-center"
               )}
             >
               <Icon size={18} className="shrink-0" />
-              {(!collapsed || isMobile) && <span>{label}</span>}
+              {(!isCollapsed || isMobile) && <span>{label}</span>}
             </Link>
           );
         })}
@@ -137,11 +139,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       {/* User footer */}
       <div className="border-t border-zinc-100 p-3">
-        <div className={cn("flex items-center gap-2", !isMobile && collapsed && "justify-center")}>
+        <div className={cn("flex items-center gap-2", !isMobile && isCollapsed && "justify-center")}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
             <User size={15} />
           </div>
-          {(!collapsed || isMobile) && (
+          {(!isCollapsed || isMobile) && (
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-xs font-medium text-zinc-900">{user?.name}</p>
               <p className="truncate text-[11px] text-zinc-400">
@@ -149,7 +151,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               </p>
             </div>
           )}
-          {(!collapsed || isMobile) && (
+          {(!isCollapsed || isMobile) && (
             <button
               onClick={handleLogout}
               className="shrink-0 rounded p-1 text-zinc-400 hover:text-red-500"
@@ -159,7 +161,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             </button>
           )}
         </div>
-        {!isMobile && collapsed && (
+        {!isMobile && isCollapsed && (
           <button
             onClick={handleLogout}
             className="mt-2 flex w-full justify-center rounded p-1 text-zinc-400 hover:text-red-500"

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Eye, Pencil, Calendar } from "lucide-react";
+import { Eye, Pencil, Calendar, Plus } from "lucide-react";
+import Link from "next/link";
 import { doctorService, appointmentService, procedureService, appointmentStatusService } from "@/services/api";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Appointment } from "@/types/clinic";
@@ -27,7 +28,7 @@ export default function AgendaPage() {
   const [expandedApptId, setExpandedApptId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
-  const { canChangeStatus, canEditAppointment, isMedico } = usePermissions();
+  const { canChangeStatus, canEditAppointment, canCreateAppointment, isMedico } = usePermissions();
 
   const { data: doctors = [] } = useQuery({
     queryKey: ["doctors"],
@@ -79,6 +80,17 @@ export default function AgendaPage() {
           onDateSelect={setSelectedDate}
           appointmentDates={appointmentDates}
         />
+
+        {/* New appointment button */}
+        {canCreateAppointment && (
+          <Link
+            href="/agendamento/novo"
+            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors shrink-0 lg:shrink"
+          >
+            <Plus size={15} />
+            <span>Novo Agendamento</span>
+          </Link>
+        )}
 
         {/* Stats */}
         <div className="rounded-xl bg-white border border-zinc-100 shadow-sm p-4">
