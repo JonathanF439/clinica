@@ -5,6 +5,7 @@ export const CATEGORIES: string[] = [
   "D'SOCIAL",
   'WALDEMIRO LUSTOZA (WPL)',
   'WAIMIRI ATROARI',
+  'CORTESIA',
 ];
 
 export const APPOINTMENT_TYPES: string[] = [
@@ -12,6 +13,7 @@ export const APPOINTMENT_TYPES: string[] = [
   'RETORNO',
   'TRATAMENTO',
   'AVALIAÇÃO',
+  'CIRURGIA',
 ];
 
 export const APPOINTMENT_STATUSES: string[] = [

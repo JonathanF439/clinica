@@ -90,6 +90,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
+    if (!form.phone?.trim()) newErrors.phone = "Celular é obrigatório";
     if (form.cpf && !validateCPF(form.cpf)) {
       setCpfError("CPF inválido");
       newErrors.cpf = "CPF inválido";
@@ -214,8 +215,14 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Contato</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className="label">Celular 1</label>
-                  <input className="input" value={form.phone ?? ""} onChange={(e) => set("phone", maskPhone(e.target.value))} placeholder="(00) 00000-0000" />
+                  <label className="label">Celular 1 *</label>
+                  <input
+                    className={`input ${errors.phone ? "border-red-400" : ""}`}
+                    value={form.phone ?? ""}
+                    onChange={(e) => { set("phone", maskPhone(e.target.value)); setErrors((prev) => ({ ...prev, phone: "" })); }}
+                    placeholder="(00) 00000-0000"
+                  />
+                  {errors.phone && <p className="mt-0.5 text-xs text-red-500">{errors.phone}</p>}
                 </div>
                 <div>
                   <label className="label">Celular 2</label>
@@ -280,7 +287,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
             <button type="button" onClick={onClose} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50">
               Cancelar
             </button>
-            <button type="submit" disabled={isSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={isSaving || Object.keys(errors).length > 0 || !!cpfError} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
               {isSaving ? "Salvando..." : patient ? "Salvar" : "Cadastrar"}
             </button>
           </div>
