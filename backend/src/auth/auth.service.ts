@@ -37,7 +37,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(payload: { sub: string; email: string; role: string }) {
+  async validateUser(payload: { sub: string; login: string; role: string }) {
     return this.userService.findById(payload.sub);
   }
 }
