@@ -36,10 +36,13 @@ export function ProcedureCombobox({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filtered = procedures.filter(
-    (p) =>
-      p.code.toLowerCase().includes(search.toLowerCase()) ||
-      p.name.toLowerCase().includes(search.toLowerCase())
+  const trimmed = search.trim();
+  const isNumeric = /^\d+$/.test(trimmed);
+  const filtered = procedures.filter((p) =>
+    isNumeric
+      ? p.code === trimmed || p.name.toLowerCase().includes(trimmed.toLowerCase())
+      : p.code.toLowerCase().includes(trimmed.toLowerCase()) ||
+        p.name.toLowerCase().includes(trimmed.toLowerCase())
   );
 
   const handleSelect = (proc: Procedure) => {
