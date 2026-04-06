@@ -1,7 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,29 @@ export class UserService {
 
   async findAll() {
     return this.prisma.user.findMany({
+      select: { id: true, name: true, login: true, role: true, createdAt: true },
+    });
+  }
+
+  async update(id: string, dto: UpdateUserDto) {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Usuário não encontrado');
+
+    if (dto.login && dto.login !== existing.login) {
+      const conflict = await this.findByLogin(dto.login);
+      if (conflict) throw new ConflictException('Login já cadastrado');
+    }
+
+    const data: Partial<UpdateUserDto & { password: string }> = { ...dto };
+    if (dto.password) {
+      data.password = await bcrypt.hash(dto.password, 10);
+    } else {
+      delete data.password;
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data,
       select: { id: true, name: true, login: true, role: true, createdAt: true },
     });
   }

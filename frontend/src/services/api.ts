@@ -81,4 +81,5 @@ export const permissionService = {
 export const userService = {
   findAll: () => api.get<User[]>("/users").then((r) => r.data),
   create: (data: CreateUserPayload) => api.post<User>("/users", data).then((r) => r.data),
+  update: (id: string, data: Partial<CreateUserPayload>) => api.patch<User>(`/users/${id}`, data).then((r) => r.data),
 };
