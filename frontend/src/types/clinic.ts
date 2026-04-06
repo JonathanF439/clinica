@@ -29,11 +29,8 @@ export interface Procedure {
 export interface Doctor {
   id: string;
   name: string;
-  crm: string;
-  specialty: string;
-  cpf?: string;
-  phone?: string;
-  email?: string;
+  crm?: string;
+  specialty?: string;
 }
 
 export interface Patient {
@@ -95,7 +92,7 @@ export interface Appointment {
 export interface User {
   id: string;
   name: string;
-  email: string;
+  login: string;
   role: UserRole;
   createdAt?: string;
 }
@@ -110,7 +107,7 @@ export interface Permission {
 
 export interface CreateUserPayload {
   name: string;
-  email: string;
+  login: string;
   password: string;
   role: 'RECEPCIONISTA' | 'ENFERMAGEM';
 }

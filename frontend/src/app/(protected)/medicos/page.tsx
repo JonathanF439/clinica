@@ -10,10 +10,6 @@ import type { Doctor } from "@/types/clinic";
 const emptyForm = (): Omit<Doctor, "id"> => ({
   name: "",
   crm: "",
-  specialty: "",
-  cpf: "",
-  phone: "",
-  email: "",
 });
 
 function DoctorModal({
@@ -28,7 +24,7 @@ function DoctorModal({
   isSaving?: boolean;
 }) {
   const [form, setForm] = useState<Omit<Doctor, "id">>(
-    doctor ? { name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, cpf: doctor.cpf ?? "", phone: doctor.phone ?? "", email: doctor.email ?? "" }
+    doctor ? { name: doctor.name, crm: doctor.crm ?? "" }
            : emptyForm()
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,8 +46,6 @@ function DoctorModal({
             e.preventDefault();
             const newErrors: Record<string, string> = {};
             if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
-            if (!form.crm.trim()) newErrors.crm = "CRM é obrigatório";
-            if (!form.specialty.trim()) newErrors.specialty = "Especialidade é obrigatória";
             if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
             onSave(form);
           }}
@@ -62,31 +56,9 @@ function DoctorModal({
             <input className={`input ${errors.name ? "border-red-400" : ""}`} value={form.name} onChange={(e) => set("name", e.target.value.toUpperCase())} />
             {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="label">CRM *</label>
-              <input className={`input ${errors.crm ? "border-red-400" : ""}`} value={form.crm} onChange={(e) => set("crm", e.target.value)} placeholder="00000-AM" />
-              {errors.crm && <p className="mt-0.5 text-xs text-red-500">{errors.crm}</p>}
-            </div>
-            <div>
-              <label className="label">Especialidade *</label>
-              <input className={`input ${errors.specialty ? "border-red-400" : ""}`} value={form.specialty} onChange={(e) => set("specialty", e.target.value)} />
-              {errors.specialty && <p className="mt-0.5 text-xs text-red-500">{errors.specialty}</p>}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="label">CPF</label>
-              <input className="input" value={form.cpf ?? ""} onChange={(e) => set("cpf", e.target.value)} />
-            </div>
-            <div>
-              <label className="label">Telefone</label>
-              <input className="input" value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
-            </div>
-          </div>
           <div>
-            <label className="label">E-mail</label>
-            <input type="email" className="input" value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
+            <label className="label">CRM</label>
+            <input className="input" value={form.crm ?? ""} onChange={(e) => set("crm", e.target.value)} placeholder="00000-AM" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50">
@@ -164,8 +136,6 @@ export default function MedicosPage() {
               <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">CRM</th>
-                <th className="px-4 py-3">Especialidade</th>
-                <th className="px-4 py-3">Telefone</th>
                 {canEditDoctor && <th className="px-4 py-3 text-right">Ações</th>}
               </tr>
             </thead>
@@ -173,9 +143,7 @@ export default function MedicosPage() {
               {doctors.map((doctor) => (
                 <tr key={doctor.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                   <td className="px-4 py-3 font-medium text-zinc-900">{doctor.name}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-zinc-500">{doctor.crm}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{doctor.specialty}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{doctor.phone ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-zinc-500">{doctor.crm ?? "—"}</td>
                   {canEditDoctor && (
                     <td className="px-4 py-3">
                       <div className="flex justify-end">

@@ -12,7 +12,7 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const user = await this.userService.findByEmail(loginDto.email);
+    const user = await this.userService.findByLogin(loginDto.login);
 
     if (!user) {
       throw new UnauthorizedException('Credenciais inválidas');
@@ -23,7 +23,7 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, login: user.login, role: user.role };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -31,7 +31,7 @@ export class AuthService {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email,
+        login: user.login,
         role: user.role,
       },
     };

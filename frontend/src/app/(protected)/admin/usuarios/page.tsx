@@ -33,7 +33,7 @@ function CreateUserModal({
 }) {
   const [form, setForm] = useState<CreateUserPayload>({
     name: "",
-    email: "",
+    login: "",
     password: "",
     role: "RECEPCIONISTA",
   });
@@ -48,7 +48,7 @@ function CreateUserModal({
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
-    if (!form.email.trim()) newErrors.email = "E-mail é obrigatório";
+    if (!form.login.trim()) newErrors.login = "Login é obrigatório";
     if (!form.password || form.password.length < 6)
       newErrors.password = "Senha deve ter no mínimo 6 caracteres";
     if (Object.keys(newErrors).length > 0) {
@@ -78,14 +78,15 @@ function CreateUserModal({
             {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
           </div>
           <div>
-            <label className="label">E-mail *</label>
+            <label className="label">Login *</label>
             <input
-              type="email"
-              className={`input ${errors.email ? "border-red-400" : ""}`}
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
+              type="text"
+              className={`input ${errors.login ? "border-red-400" : ""}`}
+              value={form.login}
+              onChange={(e) => set("login", e.target.value)}
+              placeholder="ex: joao.silva"
             />
-            {errors.email && <p className="mt-0.5 text-xs text-red-500">{errors.email}</p>}
+            {errors.login && <p className="mt-0.5 text-xs text-red-500">{errors.login}</p>}
           </div>
           <div>
             <label className="label">Senha *</label>
@@ -153,7 +154,7 @@ export default function UsuariosPage() {
     },
     onError: (err: { response?: { status?: number } }) => {
       if (err?.response?.status === 409) {
-        setCreateError("E-mail já cadastrado no sistema.");
+        setCreateError("Login já cadastrado no sistema.");
       } else {
         setCreateError("Erro ao criar usuário. Tente novamente.");
       }
@@ -196,7 +197,7 @@ export default function UsuariosPage() {
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
                 <th className="px-4 py-3">Nome</th>
-                <th className="px-4 py-3">E-mail</th>
+                <th className="px-4 py-3">Login</th>
                 <th className="px-4 py-3">Perfil</th>
                 <th className="px-4 py-3">Cadastrado em</th>
               </tr>
@@ -205,7 +206,7 @@ export default function UsuariosPage() {
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                   <td className="px-4 py-3 font-medium text-zinc-900">{user.name}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{user.email}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-500">{user.login}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-600"}`}>
                       {ROLE_LABELS[user.role] ?? user.role}

@@ -139,24 +139,24 @@ async function main() {
   const hashedEnfermagem = await bcrypt.hash('enfermagem123', 10);
 
   await prisma.user.upsert({
-    where: { email: 'admin@clinica.com' },
+    where: { login: 'admin' },
     update: {},
-    create: { name: 'Administrador', email: 'admin@clinica.com', password: hashedAdmin, role: UserRole.ADMIN },
+    create: { name: 'Administrador', login: 'admin', password: hashedAdmin, role: UserRole.ADMIN },
   });
   const medicoUser = await prisma.user.upsert({
-    where: { email: 'medico@clinica.com' },
+    where: { login: 'medico' },
     update: {},
-    create: { name: 'DR. DAVID TAYAH', email: 'medico@clinica.com', password: hashedMedico, role: UserRole.MEDICO },
+    create: { name: 'DR. DAVID TAYAH', login: 'medico', password: hashedMedico, role: UserRole.MEDICO },
   });
   await prisma.user.upsert({
-    where: { email: 'recepcao@clinica.com' },
+    where: { login: 'recepcao' },
     update: {},
-    create: { name: 'LOURIVANIA', email: 'recepcao@clinica.com', password: hashedRecepcao, role: UserRole.RECEPCIONISTA },
+    create: { name: 'LOURIVANIA', login: 'recepcao', password: hashedRecepcao, role: UserRole.RECEPCIONISTA },
   });
   await prisma.user.upsert({
-    where: { email: 'enfermagem@clinica.com' },
+    where: { login: 'enfermagem' },
     update: {},
-    create: { name: 'Enfermagem', email: 'enfermagem@clinica.com', password: hashedEnfermagem, role: UserRole.ENFERMAGEM },
+    create: { name: 'Enfermagem', login: 'enfermagem', password: hashedEnfermagem, role: UserRole.ENFERMAGEM },
   });
   console.log('4 usuários criados');
 

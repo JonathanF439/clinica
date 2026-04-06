@@ -6,14 +6,14 @@ import { api } from "@/services/api";
 interface User {
   id: string;
   name: string;
-  email: string;
+  login: string;
   role: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -38,8 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchMe();
   }, [fetchMe]);
 
-  const login = async (email: string, password: string) => {
-    const response = await api.post("/auth/login", { email, password });
+  const login = async (username: string, password: string) => {
+    const response = await api.post("/auth/login", { login: username, password });
     setUser(response.data.user);
   };
 

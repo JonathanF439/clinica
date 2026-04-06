@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateDoctorDto {
@@ -7,30 +7,15 @@ export class CreateDoctorDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  crm: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  specialty: string;
+  crm?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  cpf?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsEmail()
-  email?: string;
+  specialty?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
