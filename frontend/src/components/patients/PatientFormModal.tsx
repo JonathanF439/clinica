@@ -287,7 +287,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
             <button type="button" onClick={onClose} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50">
               Cancelar
             </button>
-            <button type="submit" disabled={isSaving || Object.keys(errors).length > 0 || !!cpfError} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={isSaving || Object.values(errors).some((v) => v !== "") || !!cpfError} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
               {isSaving ? "Salvando..." : patient ? "Salvar" : "Cadastrar"}
             </button>
           </div>
