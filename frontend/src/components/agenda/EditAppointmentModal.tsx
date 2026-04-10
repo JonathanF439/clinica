@@ -124,8 +124,18 @@ export function EditAppointmentModal({
               <label className="label">Procedimento</label>
               <ProcedureCombobox
                 procedures={procedures}
-                value={form.procedureCode ? { code: form.procedureCode, name: form.procedureName ?? "" } : null}
-                onChange={(p) => { set("procedureCode", p?.code ?? ""); set("procedureName", p?.name ?? ""); }}
+                value={
+                  form.procedureCode
+                    ? form.procedureCode.split(",").map((code, i) => ({
+                        code: code.trim(),
+                        name: (form.procedureName?.split(",")[i] ?? "").trim(),
+                      }))
+                    : []
+                }
+                onChange={(list) => {
+                  set("procedureCode", list.map((p) => p.code).join(","));
+                  set("procedureName", list.map((p) => p.name).join(","));
+                }}
               />
             </div>
 
