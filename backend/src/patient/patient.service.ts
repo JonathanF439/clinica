@@ -8,15 +8,23 @@ export class PatientService {
   constructor(private readonly prisma: PrismaService) {}
 
   findAll(search?: string) {
+    if (!search) return this.prisma.patient.findMany({ orderBy: { name: 'asc' } });
+
+    const digits = search.replace(/\D/g, '');
+    const cpfFormatted =
+      digits.length === 11
+        ? digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
+        : null;
+
     return this.prisma.patient.findMany({
-      where: search
-        ? {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { cpf: { contains: search } },
-            ],
-          }
-        : undefined,
+      where: {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { cpf: { contains: search } },
+          ...(cpfFormatted ? [{ cpf: { contains: cpfFormatted } }] : []),
+          ...(digits.length > 2 ? [{ cpf: { contains: digits } }] : []),
+        ],
+      },
       orderBy: { name: 'asc' },
     });
   }

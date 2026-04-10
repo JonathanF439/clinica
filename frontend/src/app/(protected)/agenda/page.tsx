@@ -156,7 +156,7 @@ export default function AgendaPage() {
                   <th className="px-4 py-3">Telefone</th>
                   <th className="px-4 py-3">Médico</th>
                   <th className="px-4 py-3">Categoria</th>
-                  <th className="px-4 py-3">Procedimento</th>
+                  <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
@@ -186,8 +186,8 @@ export default function AgendaPage() {
                       {appt.doctor?.name ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{appt.category}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-500 truncate max-w-32">
-                      {appt.procedureName ?? "—"}
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">{appt.type}</span>
                     </td>
                     <td className="px-4 py-3">
                       {canChangeStatus ? (
@@ -230,9 +230,23 @@ export default function AgendaPage() {
                   </tr>
                   {expandedApptId === appt.id && (
                     <tr className="bg-zinc-50/70">
-                      <td colSpan={8} className="px-6 py-3">
-                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Obs. Agenda</p>
-                        <p className="text-sm text-zinc-700">{appt.obsAgenda || <span className="text-zinc-400 italic">Sem observações</span>}</p>
+                      <td colSpan={8} className="px-6 py-3 space-y-2">
+                        {appt.procedureName && (
+                          <div>
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Procedimentos</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {appt.procedureName.split(",").map((name, i) => (
+                                <span key={i} className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700">
+                                  {name.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Obs. Agenda</p>
+                          <p className="text-sm text-zinc-700">{appt.obsAgenda || <span className="text-zinc-400 italic">Sem observações</span>}</p>
+                        </div>
                       </td>
                     </tr>
                   )}

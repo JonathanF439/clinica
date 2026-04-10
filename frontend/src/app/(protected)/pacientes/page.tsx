@@ -199,14 +199,23 @@ export default function PacientesPage() {
                             {patientAppointments.map((appt) => (
                               <div
                                 key={appt.id}
-                                className="flex items-center gap-4 rounded-lg bg-white px-3 py-2 text-xs border border-zinc-100"
+                                className="rounded-lg bg-white px-3 py-2 text-xs border border-zinc-100 space-y-1"
                               >
-                                <span className="font-mono text-zinc-500">{formatDate(appt.date)} {appt.time}</span>
-                                <span className="text-zinc-700">{appt.doctor?.name}</span>
-                                <span className="text-zinc-500">{appt.procedureName ?? appt.type}</span>
-                                <AppointmentStatusBadge status={appt.status} />
-                                {appt.obsAgenda && (
-                                  <span className="text-zinc-400 truncate max-w-48">{appt.obsAgenda}</span>
+                                <div className="flex items-center gap-4">
+                                  <span className="font-mono text-zinc-500">{formatDate(appt.date)} {appt.time}</span>
+                                  <span className="text-zinc-700">{appt.doctor?.name}</span>
+                                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">{appt.type}</span>
+                                  <AppointmentStatusBadge status={appt.status} />
+                                </div>
+                                {(appt.procedureName || appt.obsAgenda) && (
+                                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-zinc-400">
+                                    {appt.procedureName && (
+                                      <span><span className="font-medium text-zinc-500">Proc.: </span>{appt.procedureName}</span>
+                                    )}
+                                    {appt.obsAgenda && (
+                                      <span><span className="font-medium text-zinc-500">Obs.: </span>{appt.obsAgenda}</span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             ))}
