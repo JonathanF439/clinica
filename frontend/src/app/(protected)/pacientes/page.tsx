@@ -64,6 +64,16 @@ export default function PacientesPage() {
     return `${day}/${m}/${y}`;
   };
 
+  const calcAge = (birthDate?: string | null): number | null => {
+    if (!birthDate) return null;
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  };
+
   const filtered = filterIncomplete ? patients.filter((p) => p.cadastroIncompleto) : patients;
 
   return (
@@ -129,6 +139,7 @@ export default function PacientesPage() {
                 <th className="px-4 py-3">CPF</th>
                 <th className="px-4 py-3">Cartão SUS</th>
                 <th className="px-4 py-3">Telefone</th>
+                <th className="px-4 py-3">Idade</th>
                 {canEditPatient && <th className="px-4 py-3 text-right">Ações</th>}
               </tr>
             </thead>
@@ -157,6 +168,9 @@ export default function PacientesPage() {
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.cpf ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.susCard ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{patient.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-500">
+                      {calcAge(patient.birthDate) !== null ? `${calcAge(patient.birthDate)} anos` : "—"}
+                    </td>
                     {canEditPatient && (
                       <td className="px-4 py-3">
                         <div className="flex justify-end">

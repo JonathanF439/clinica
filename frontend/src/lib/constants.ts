@@ -14,6 +14,7 @@ export const APPOINTMENT_TYPES: string[] = [
   'TRATAMENTO',
   'AVALIAÇÃO',
   'CIRURGIA',
+  'EXAME',
 ];
 
 export const APPOINTMENT_STATUSES: string[] = [

@@ -6,6 +6,16 @@ import type { Patient } from "@/types/clinic";
 import { validateCPF, formatCPF } from "@/lib/validation";
 import { MARITAL_STATUS, SEX_OPTIONS, RACE_OPTIONS } from "@/lib/constants";
 
+function calcAge(birthDate: string): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age >= 0 ? age : null;
+}
+
 function maskCPF(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 3) return digits;
@@ -59,6 +69,7 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
   const [form, setForm] = useState<Omit<Patient, "id">>(emptyForm());
   const [cpfError, setCpfError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [noCpf, setNoCpf] = useState(false);
 
   useEffect(() => {
     if (patient) {
@@ -91,9 +102,14 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
     if (!form.phone?.trim()) newErrors.phone = "Celular é obrigatório";
-    if (form.cpf && !validateCPF(form.cpf)) {
-      setCpfError("CPF inválido");
-      newErrors.cpf = "CPF inválido";
+    if (!noCpf) {
+      if (!form.cpf?.trim()) {
+        setCpfError("CPF é obrigatório");
+        newErrors.cpf = "CPF é obrigatório";
+      } else if (!validateCPF(form.cpf)) {
+        setCpfError("CPF inválido");
+        newErrors.cpf = "CPF inválido";
+      }
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -143,7 +159,24 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            if (target.tagName === "INPUT" && (target as HTMLInputElement).type === "radio") return;
+            if (target.tagName === "BUTTON" && (target as HTMLButtonElement).type === "submit") return;
+            e.preventDefault();
+            const focusable = Array.from(
+              e.currentTarget.querySelectorAll<HTMLElement>(
+                'input:not([type="radio"]), select, textarea, button[type="submit"]'
+              )
+            ).filter((el) => !(el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLButtonElement).disabled);
+            const index = focusable.indexOf(target);
+            if (index >= 0 && index < focusable.length - 1) focusable[index + 1].focus();
+          }}
+          className="overflow-y-auto"
+        >
           <div className="space-y-6 p-6">
 
             {/* Dados principais */}
@@ -160,13 +193,28 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
                   {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="label">CPF</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="label mb-0">CPF *</label>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-500 select-none">
+                      <input
+                        type="checkbox"
+                        checked={noCpf}
+                        onChange={(e) => {
+                          setNoCpf(e.target.checked);
+                          if (e.target.checked) { set("cpf", ""); setCpfError(""); }
+                        }}
+                        className="accent-blue-600"
+                      />
+                      Não possui CPF
+                    </label>
+                  </div>
                   <input
-                    className={`input ${cpfError ? "border-red-400" : ""}`}
+                    className={`input ${cpfError ? "border-red-400" : ""} ${noCpf ? "bg-zinc-50 text-zinc-400 cursor-not-allowed" : ""}`}
                     value={form.cpf ?? ""}
                     onChange={(e) => { set("cpf", maskCPF(e.target.value)); setCpfError(""); }}
                     onBlur={handleCPFBlur}
-                    placeholder="000.000.000-00"
+                    placeholder={noCpf ? "Não possui CPF" : "000.000.000-00"}
+                    disabled={noCpf}
                   />
                   {cpfError && <p className="mt-0.5 text-xs text-red-500">{cpfError}</p>}
                 </div>
@@ -177,6 +225,15 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
                 <div>
                   <label className="label">Data de Nascimento</label>
                   <input type="date" className="input" value={form.birthDate ?? ""} onChange={(e) => set("birthDate", e.target.value)} />
+                </div>
+                <div>
+                  <label className="label">Idade</label>
+                  <input
+                    className="input bg-zinc-50 text-zinc-500 cursor-not-allowed"
+                    value={form.birthDate ? `${calcAge(form.birthDate) ?? "—"} anos` : ""}
+                    readOnly
+                    placeholder="—"
+                  />
                 </div>
                 <div>
                   <label className="label">Sexo</label>
