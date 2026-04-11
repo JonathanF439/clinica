@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { X, Printer } from "lucide-react";
+import { CapaPterigioModal } from "./CapaPterigioModal";
+import { CapaCatarataModal } from "./CapaCatarataModal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Appointment, Patient } from "@/types/clinic";
 import { AppointmentStatusBadge } from "./AppointmentStatusBadge";
@@ -43,6 +45,8 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
   const [activeTab, setActiveTab] = useState<"agendamento" | "paciente">("agendamento");
   const [patientForm, setPatientForm] = useState(emptyPatientForm());
   const [cpfError, setCpfError] = useState("");
+  const [showPterigio, setShowPterigio] = useState(false);
+  const [showCatarata, setShowCatarata] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -74,6 +78,10 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
 
   const p = appointment.patient;
   const d = appointment.doctor;
+
+  const procedureCodes = (appointment.procedureCode ?? "").split(",").map((c) => parseInt(c.trim()));
+  const hasPterigio = procedureCodes.some((c) => c === 4);
+  const hasCatarata = procedureCodes.some((c) => c === 37);
 
   const setP = (key: keyof typeof patientForm, val: unknown) =>
     setPatientForm((f) => ({ ...f, [key]: val }));
@@ -126,6 +134,7 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="flex w-full max-w-[95vw] flex-col rounded-xl bg-white shadow-xl max-h-[90vh] lg:max-w-5xl">
 
@@ -136,12 +145,30 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
             <p className="text-xs text-zinc-400">{p?.name ?? ""}</p>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50"
-            >
-              <Printer size={13} /> Imprimir
-            </button>
+            {hasPterigio && (
+              <button
+                onClick={() => setShowPterigio(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-100"
+              >
+                <Printer size={13} /> Capa Pterígio
+              </button>
+            )}
+            {hasCatarata && (
+              <button
+                onClick={() => setShowCatarata(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs text-blue-700 hover:bg-blue-100"
+              >
+                <Printer size={13} /> Capa Catarata
+              </button>
+            )}
+            {!hasPterigio && !hasCatarata && (
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50"
+              >
+                <Printer size={13} /> Imprimir
+              </button>
+            )}
             <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 text-zinc-500">
               <X size={16} />
             </button>
@@ -366,6 +393,14 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
         )}
       </div>
     </div>
+
+    {showPterigio && (
+      <CapaPterigioModal appointment={appointment} onClose={() => setShowPterigio(false)} />
+    )}
+    {showCatarata && (
+      <CapaCatarataModal appointment={appointment} onClose={() => setShowCatarata(false)} />
+    )}
+  </>
   );
 }
 

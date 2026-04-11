@@ -9,6 +9,7 @@ import { doctorService, appointmentService, procedureService, appointmentStatusS
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Appointment } from "@/types/clinic";
 import { MiniCalendar } from "@/components/agenda/MiniCalendar";
+import { Pagination } from "@/components/shared/Pagination";
 import { AppointmentDetailsModal } from "@/components/agenda/AppointmentDetailsModal";
 import { EditAppointmentModal } from "@/components/agenda/EditAppointmentModal";
 import { APPOINTMENT_STATUSES, STATUS_TEXT_COLORS } from "@/lib/constants";
@@ -26,6 +27,8 @@ export default function AgendaPage() {
   const [detailsAppt, setDetailsAppt] = useState<Appointment | null>(null);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
   const [expandedApptId, setExpandedApptId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const queryClient = useQueryClient();
   const { canChangeStatus, canEditAppointment, canCreateAppointment, isMedico } = usePermissions();
@@ -64,6 +67,7 @@ export default function AgendaPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["appointments"] }),
   });
 
+  const paginatedAppointments = appointments.slice((page - 1) * pageSize, page * pageSize);
   const appointmentDates = [...new Set(appointments.map((a) => a.date))];
 
   const formatDate = (d: string) => {
@@ -77,7 +81,7 @@ export default function AgendaPage() {
       <div className="flex gap-3 overflow-x-auto lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-x-visible lg:space-y-4">
         <MiniCalendar
           selectedDate={selectedDate}
-          onDateSelect={setSelectedDate}
+          onDateSelect={(d) => { setSelectedDate(d); setPage(1); }}
           appointmentDates={appointmentDates}
         />
 
@@ -162,7 +166,7 @@ export default function AgendaPage() {
                 </tr>
               </thead>
               <tbody>
-                {appointments.map((appt) => (
+                {paginatedAppointments.map((appt) => (
                   <React.Fragment key={appt.id}>
                   <tr
                     className="border-b border-zinc-50 hover:bg-zinc-50/50 transition-colors"
@@ -254,6 +258,15 @@ export default function AgendaPage() {
                 ))}
               </tbody>
             </table>
+          )}
+          {appointments.length > 0 && (
+            <Pagination
+              total={appointments.length}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            />
           )}
         </div>
 

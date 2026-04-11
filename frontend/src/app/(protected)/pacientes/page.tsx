@@ -8,6 +8,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import type { Patient } from "@/types/clinic";
 import { PatientFormModal } from "@/components/patients/PatientFormModal";
 import { AppointmentStatusBadge } from "@/components/agenda/AppointmentStatusBadge";
+import { Pagination } from "@/components/shared/Pagination";
 
 export default function PacientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +17,8 @@ export default function PacientesPage() {
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [expandedPatientId, setExpandedPatientId] = useState<string | null>(null);
   const [filterIncomplete, setFilterIncomplete] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const queryClient = useQueryClient();
   const { canCreatePatient, canEditPatient } = usePermissions();
@@ -75,6 +78,7 @@ export default function PacientesPage() {
   };
 
   const filtered = filterIncomplete ? patients.filter((p) => p.cadastroIncompleto) : patients;
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div className="p-6">
@@ -102,13 +106,13 @@ export default function PacientesPage() {
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             placeholder="Buscar por nome ou CPF..."
             className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none"
           />
         </div>
         <button
-          onClick={() => setFilterIncomplete((v) => !v)}
+          onClick={() => { setFilterIncomplete((v) => !v); setPage(1); }}
           className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
             filterIncomplete
               ? "border-amber-400 bg-amber-50 text-amber-700"
@@ -144,7 +148,7 @@ export default function PacientesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((patient) => (
+              {paginated.map((patient) => (
                 <React.Fragment key={patient.id}>
                   <tr
                     className="border-b border-zinc-50 hover:bg-zinc-50/50 cursor-pointer"
@@ -228,6 +232,15 @@ export default function PacientesPage() {
               ))}
             </tbody>
           </table>
+        )}
+        {filtered.length > 0 && (
+          <Pagination
+            total={filtered.length}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+          />
         )}
       </div>
 
