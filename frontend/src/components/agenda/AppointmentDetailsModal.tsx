@@ -65,6 +65,16 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
     setCpfError("");
   }, [appointment]);
 
+  const calcAge = (birthDate?: string): string => {
+    if (!birthDate) return "";
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? String(age) : "";
+  };
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Patient> }) =>
       patientService.update(id, data),
@@ -272,6 +282,10 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
                   <div>
                     <label className="label">Data de Nascimento</label>
                     <input type="date" className="input" value={patientForm.birthDate ?? ""} onChange={(e) => setP("birthDate", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label">Idade</label>
+                    <input className="input bg-zinc-50 text-zinc-500 cursor-default" readOnly value={calcAge(patientForm.birthDate)} placeholder="—" />
                   </div>
                   <div>
                     <label className="label">Sexo</label>
