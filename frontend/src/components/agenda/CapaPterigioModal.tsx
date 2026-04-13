@@ -24,15 +24,46 @@ function formatDate(d?: string): string {
   return `${day}/${m}/${y}`;
 }
 
-const L = (v?: string, n = 30) => v || "_".repeat(n);
-const CB = (v: boolean) => v ? "(X)" : "( )";
+// Valor: se preenchido mostra texto sem linha; se vazio mostra linha CSS
+const V = (v?: string, minWidth?: string) => {
+  const s = v?.trim() ?? "";
+  const style = minWidth ? ` style="min-width:${minWidth}"` : "";
+  return s
+    ? `<span class="val filled">${s}</span>`
+    : `<span class="val"${style}>&nbsp;</span>`;
+};
+
+// Data: se preenchida sem linha; se vazia com linha
+const VD = (d?: string, minWidth = "95px") =>
+  d
+    ? `<span class="val filled">${formatDate(d)}</span>`
+    : `<span class="val" style="min-width:${minWidth}">&nbsp;</span>`;
+
+// Checkbox quadrado — usa ✓ dentro do box para garantir render na impressão
+const CB = (checked: boolean) =>
+  checked
+    ? `<span class="cb cb-checked">✓</span>`
+    : `<span class="cb"></span>`;
 
 export function CapaPterigioModal({ appointment, onClose }: Props) {
   const p = appointment.patient;
   const age = calcAge(p?.birthDate);
-  const addr = [p?.addrStreet, p?.addrNumber ? `nº ${p.addrNumber}` : "", p?.addrNeighborhood].filter(Boolean).join(", ");
-  const isMasc = !!p?.sex?.toLowerCase().includes("masc");
-  const isFem = !!p?.sex?.toLowerCase().includes("fem");
+  const hasAge = !!p?.birthDate;
+  const addr = [p?.addrStreet, p?.addrNumber ? `nº ${p.addrNumber}` : "", p?.addrNeighborhood]
+    .filter(Boolean)
+    .join(", ");
+
+  // Sexo — case-insensitive
+  const sex = p?.sex?.toLowerCase() ?? "";
+  const isMasc = sex.includes("masc");
+  const isFem  = sex.includes("fem");
+
+  // Raça — case-insensitive
+  const race = p?.race?.toLowerCase() ?? "";
+  const isBranca  = race === "branca";
+  const isAmarela = race === "amarela";
+  const isParda   = race === "parda";
+  const isPreta   = race === "preta";
 
   const handlePrint = () => {
     const win = window.open("", "_blank", "width=900,height=750");
@@ -40,75 +71,132 @@ export function CapaPterigioModal({ appointment, onClose }: Props) {
     win.document.write(`<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Setor de Cirurgia — Pterígio</title>
 <style>
-  @page { size: A4 portrait; margin: 14mm 18mm; }
+  @page { size: A4 portrait; margin: 7mm 15mm 10mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+
   body {
     font-family: Arial, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     color: #000;
+    min-height: 277mm;
     display: flex;
     flex-direction: column;
-    height: 100%;
   }
+
   .page {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    gap: 0;
   }
+
   h1 {
     text-align: center;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     letter-spacing: 2px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid #000;
-    margin-bottom: 10px;
-  }
-  .section-title {
-    font-weight: bold;
-    font-size: 12px;
+    padding-bottom: 5px;
+    border-bottom: 2.5px solid #000;
     margin-bottom: 6px;
-    margin-top: 2px;
+    flex-shrink: 0;
   }
+
+  /* Blocos: os 4 primeiros têm altura natural; os 3 últimos expandem para preencher a página */
   .block {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: flex-start;
     padding: 6px 0;
-    border-bottom: 1px dashed #ccc;
   }
-  .block:last-child { border-bottom: none; }
+  .block.grow {
+    flex: 1;
+  }
+
+  .section-title {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  /* Linha label + valor: linha começa logo após o label */
+  .fl {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .fl:last-child { margin-bottom: 0; }
+
+  .fl .lbl {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Valor com linha (campo vazio) */
+  .fl .val {
+    flex: 1;
+    border-bottom: 1px solid #000;
+    padding-bottom: 1px;
+  }
+  /* Valor sem linha (campo preenchido) */
+  .fl .val.filled {
+    border-bottom: none;
+    padding-left: 3px;
+  }
+
+  /* Linha extra de escrita contínua */
+  .wl {
+    border-bottom: 1px solid #000;
+    height: 26px;
+    margin-top: 6px;
+  }
+
+  /* Linha de campos na mesma row */
   .row {
     display: flex;
+    align-items: center;
     gap: 16px;
-    align-items: baseline;
     flex-wrap: wrap;
-    line-height: 2;
+    margin-bottom: 8px;
   }
-  .field-line {
-    display: flex;
+  .row:last-child { margin-bottom: 0; }
+
+  /* Campo inline: linha começa logo após o label */
+  .ifl {
+    display: inline-flex;
     align-items: baseline;
-    gap: 4px;
-    line-height: 2.2;
+    white-space: nowrap;
   }
-  u {
-    text-decoration: none;
+  .ifl .lbl { flex-shrink: 0; }
+  .ifl .val {
     border-bottom: 1px solid #000;
-    display: inline-block;
+    padding-bottom: 1px;
     min-width: 60px;
   }
-  .u-full {
-    text-decoration: none;
-    border-bottom: 1px solid #000;
-    display: block;
-    width: 100%;
-    margin-top: 2px;
-    height: 18px;
+  .ifl .val.filled {
+    border-bottom: none;
+    padding-left: 3px;
   }
+
   .bold { font-weight: bold; }
+
+  /* Checkboxes quadrados */
+  .cb {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #000;
+    vertical-align: middle;
+    margin: 0 4px 3px 4px;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+  }
+  .cb-checked {
+    background: #000;
+    color: #fff;
+  }
 </style>
 </head><body>
 <div class="page">
@@ -116,97 +204,93 @@ export function CapaPterigioModal({ appointment, onClose }: Props) {
   <h1>SETOR DE CIRURGIA</h1>
 
   <!-- Bloco 1: Cabeçalho -->
-  <div class="block">
+  <div class="block" style="padding-top:2px">
     <div class="row">
-      <span>Data: <u>${formatDate(appointment.date)}</u></span>
-      <span>Procedência: <u style="min-width:180px">${L(p?.naturality ?? p?.addrCity, 25)}</u></span>
-      <span>Idade: <u style="min-width:50px">${age}</u></span>
+      <div class="ifl"><span class="lbl">Data:</span>${VD(appointment.date, "90px")}</div>
+      <div class="ifl" style="flex:1"><span class="lbl">Procedência:</span>${V(appointment.category, "180px")}</div>
+      <div class="ifl"><span class="lbl">Idade:</span>${hasAge ? `<span class="val filled">${age}</span>` : `<span class="val" style="min-width:50px">&nbsp;</span>`}</div>
     </div>
   </div>
 
   <!-- Bloco 2: Identificação -->
   <div class="block">
     <div class="section-title">IDENTIFICAÇÃO:</div>
-    <div class="field-line">Nome: <u style="flex:1;min-width:400px">${L(p?.name, 55)}</u></div>
+    <div class="fl"><span class="lbl">Nome:</span>${V(p?.name)}</div>
     <div class="row">
-      <span>Data de Nasc: <u>${formatDate(p?.birthDate)}</u></span>
-      <span>Qual a cidade que mora?: <u style="min-width:160px">${L(p?.addrCity, 20)}</u></span>
+      <div class="ifl"><span class="lbl">Data de Nasc:</span>${VD(p?.birthDate)}</div>
+      <div class="ifl" style="flex:1"><span class="lbl">Qual a cidade que mora?:</span>${V(p?.addrCity, "140px")}</div>
     </div>
     <div class="row">
-      <span>Diabético: ( )</span>
-      <span>Hipertenso: ( )</span>
-      <span>Outra Doença: ( )</span>
+      <span>Diabético:${CB(false)}</span>
+      <span>Hipertenso:${CB(false)}</span>
+      <div class="ifl" style="flex:1"><span class="lbl">Outros:</span>${V(undefined)}</div>
     </div>
     <div class="row">
-      <span>Sexo: Masculino ${CB(isMasc)} &nbsp; Feminino ${CB(isFem)}</span>
-      <span>Raça: Branca ${CB(p?.race === "Branca")} &nbsp; Amarela ${CB(p?.race === "Amarela")} &nbsp; Parda ${CB(p?.race === "Parda")} &nbsp; Preta ${CB(p?.race === "Preta")}</span>
+      <div class="ifl"><span class="lbl">DEXTRO:</span>${V(undefined, "90px")}</div>
+      <span>Pré&nbsp;–&nbsp;prandial${CB(false)}</span>
+      <span>Pós&nbsp;–&nbsp;prandial${CB(false)}</span>
+      <div class="ifl"><span class="lbl">às</span>${V(undefined, "55px")}</div>
     </div>
-    <div class="field-line">Endereço: <u style="flex:1;min-width:350px">${L(addr || undefined, 55)}</u></div>
     <div class="row">
-      <span>Fone/Res: <u style="min-width:110px">${L(p?.phoneResidencial, 13)}</u></span>
-      <span>Fone/Rec: <u style="min-width:110px">${L(p?.phoneComercial, 13)}</u></span>
-      <span>Celular: <u style="min-width:120px">${L(p?.phone, 14)}</u></span>
+      <span>Sexo&nbsp; Masculino${CB(isMasc)} Feminino${CB(isFem)}</span>
+      <span>&nbsp;Raça: Branca${CB(isBranca)} Amarela${CB(isAmarela)} Parda${CB(isParda)} Preta${CB(isPreta)}</span>
+    </div>
+    <div class="fl"><span class="lbl">Endereço:</span>${V(addr || undefined)}</div>
+    <div class="row">
+      <div class="ifl"><span class="lbl">Fone/Res:</span>${V(p?.phoneResidencial, "100px")}</div>
+      <div class="ifl"><span class="lbl">Fone/Rec:</span>${V(p?.phoneComercial, "100px")}</div>
+      <div class="ifl"><span class="lbl">Celular:</span>${V(p?.phone, "110px")}</div>
     </div>
   </div>
 
-  <!-- Bloco 3: Diagnóstico -->
+  <!-- Bloco 3: Diagnóstico + Olho + Localização + Obs -->
   <div class="block">
     <div class="row">
       <span class="bold">DIAGNÓSTICO:</span>
-      <span>Pterígio (X) &nbsp; Calázio ( ) &nbsp; Sinal ( ) &nbsp; Outros: <u style="min-width:140px">_______________________</u></span>
+      <span>Pterígio${CB(false)}</span>
+      <span>Calázio${CB(false)}</span>
+      <span>Sinal${CB(false)}</span>
+      <div class="ifl" style="flex:1"><span class="lbl">Outros:</span>${V(undefined)}</div>
     </div>
     <div class="row">
-      <span><span class="bold">OLHO:</span> &nbsp; OE ( ) &nbsp; OD ( )</span>
-      <span><span class="bold">LOCALIZAÇÃO:</span> &nbsp; Nasal ( ) &nbsp; Temporal ( ) &nbsp; Bilateral ( )</span>
+      <span><span class="bold">OLHO:</span> OE${CB(false)} OD${CB(false)}</span>
     </div>
+    <div class="row">
+      <span><span class="bold">LOCALIZAÇÃO:</span> Nasal${CB(false)} Temporal${CB(false)} Bilateral${CB(false)}</span>
+    </div>
+    <div class="fl"><span class="lbl">Obs:</span>${V(undefined)}</div>
   </div>
 
-  <!-- Bloco 4: Antecedentes Oftalmológicos -->
+  <!-- Bloco 4: Assinaturas -->
   <div class="block">
-    <div class="section-title">ANTECEDENTES OFTALMOLÓGICOS: (Resumo Clínico / Cirúrgico – FICHA ANTIGA)</div>
-    <div class="row">Glaucoma ( ) &nbsp; Retinopatia ( ) &nbsp; Uveite ( ) &nbsp; Costicóide Tópico ( )</div>
-    <div class="row">Olho Seco ( ) &nbsp; C.H.Fuchs ( ) &nbsp; Trauma ( ) &nbsp; Cirurgia ( ) – Cirurgia Realizada / Olho / Data</div>
-    <div class="field-line">Obs: <u style="flex:1;min-width:400px">&nbsp;</u></div>
-    <div class="u-full"></div>
+    <div class="fl"><span class="lbl bold">ASSINATURA DO PACIENTE:</span>${V(undefined)}</div>
+    <div class="fl"><span class="lbl bold">RG/CPF:</span>${V(p?.cpf)}</div>
+    <div class="fl"><span class="lbl bold">ASSINATURA DO ACOMPANHANTE:</span>${V(undefined)}</div>
+    <div class="fl"><span class="lbl bold">RG/CPF:</span>${V(undefined)}</div>
   </div>
 
-  <!-- Bloco 5: Antecedentes Pessoais -->
-  <div class="block">
-    <div class="section-title">ANTECEDENTES PESSOAIS / SISTÊMATICOS:</div>
-    <div class="row">Diabetes Mellitus ( ) &nbsp; Doença Metabólica ( ) &nbsp; Reumática ( ) &nbsp; Neurológica ( ) &nbsp; Dermatite ( )</div>
-    <div class="row">Doença Nutricional ( ) &nbsp; Irradiação ( ) &nbsp; Corticoide ( ) &nbsp; Outros ( )</div>
-    <div class="field-line">Obs: <u style="flex:1;min-width:400px">&nbsp;</u></div>
-    <div class="u-full"></div>
+  <!-- Bloco 5: Data da Cirurgia + Triagem -->
+  <div class="block grow">
+    <div class="row">
+      <div class="ifl"><span class="lbl bold">DATA DA CIRURGIA:</span>${VD(appointment.date, "110px")}</div>
+    </div>
+    <div class="fl"><span class="lbl bold">TRIAGEM:</span>${V(undefined)}</div>
+    <div class="wl"></div>
+    <div class="wl"></div>
   </div>
 
-  <!-- Bloco 6: Assinaturas -->
-  <div class="block">
-    <div class="field-line"><span class="bold">ASSINATURA DO PACIENTE:</span> <u style="flex:1;min-width:300px">&nbsp;</u></div>
-    <div class="field-line"><span class="bold">RG/CPF:</span> <u style="flex:1;min-width:350px">${L(p?.cpf, 50)}</u></div>
-    <div class="field-line"><span class="bold">ASSINATURA DO ACOMPANHANTE:</span> <u style="flex:1;min-width:270px">&nbsp;</u></div>
-    <div class="field-line"><span class="bold">RG/CPF:</span> <u style="flex:1;min-width:350px">&nbsp;</u></div>
+  <!-- Bloco 6: Procedimento -->
+  <div class="block grow">
+    <div class="fl"><span class="lbl bold">PROCEDIMENTO:</span>${V(appointment.procedureName)}</div>
+    <div class="wl"></div>
+    <div class="wl"></div>
   </div>
 
   <!-- Bloco 7: Observações Cirúrgicas -->
-  <div class="block">
-    <div class="field-line"><span class="bold">OBSERVAÇÕES CIRURGICAS:</span> <u style="flex:1;min-width:300px">&nbsp;</u></div>
-    <div class="u-full"></div>
-  </div>
-
-  <!-- Bloco 8: Data da Cirurgia + Triagem -->
-  <div class="block">
-    <div class="field-line">
-      <span class="bold">DATA DA CIRURGIA:</span> <u style="min-width:120px">${formatDate(appointment.date)}</u>
-      &nbsp;&nbsp;&nbsp;
-      <span class="bold">TRIAGEM:</span> <u style="flex:1;min-width:200px">&nbsp;</u>
-    </div>
-    <div class="u-full"></div>
-  </div>
-
-  <!-- Bloco 9: Procedimento -->
-  <div class="block">
-    <div class="field-line"><span class="bold">PROCEDIMENTO:</span> <u style="flex:1;min-width:350px">${L(appointment.procedureName, 55)}</u></div>
-    <div class="u-full"></div>
+  <div class="block grow">
+    <div class="fl"><span class="lbl bold">OBSERVAÇÕES CIRÚRGICAS:</span>${V(undefined)}</div>
+    <div class="wl"></div>
+    <div class="wl"></div>
   </div>
 
 </div>
@@ -221,7 +305,10 @@ export function CapaPterigioModal({ appointment, onClose }: Props) {
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
           <h2 className="text-base font-semibold text-zinc-900">Capa Pterígio — Setor de Cirurgia</h2>
           <div className="flex gap-2">
-            <button onClick={handlePrint} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+            >
               <Printer size={13} /> Imprimir
             </button>
             <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 text-zinc-500">

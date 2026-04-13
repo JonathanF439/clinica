@@ -61,7 +61,7 @@ const PROCEDURES = [
   { code: '11', name: 'Reposicionamento de LIO' },
   { code: '12', name: 'Hernia de Iris' },
   { code: '13', name: 'Potencial da Acuidade Visual' },
-  { code: '14', name: 'Ceratoscopia (topografia de cornea' },
+  { code: '14', name: 'Ceratoscopia (topografia de cornea)' },
   { code: '15', name: 'CDT (CDPO)' },
   { code: '16', name: 'Teste Visao de Cores' },
   { code: '17', name: 'Retinografia' },
@@ -110,14 +110,9 @@ const INITIAL_DOCTORS = [
 async function main() {
   console.log('Iniciando seed...');
 
-  // Procedures
-  for (const proc of PROCEDURES) {
-    await prisma.procedure.upsert({
-      where: { code: proc.code },
-      update: {},
-      create: proc,
-    });
-  }
+  // Procedures — limpa e recria
+  await prisma.procedure.deleteMany({});
+  await prisma.procedure.createMany({ data: PROCEDURES });
   console.log(`${PROCEDURES.length} procedimentos criados`);
 
   // Doctors — seed first without userId, then link medico user after users are created
