@@ -281,7 +281,7 @@ export function CapaPterigioModal({ appointment, onClose }: Props) {
 
   <!-- Bloco 6: Procedimento -->
   <div class="block grow">
-    <div class="fl"><span class="lbl bold">PROCEDIMENTO:</span>${V(appointment.procedureName)}</div>
+    <div class="fl"><span class="lbl bold">PROCEDIMENTO:</span>${V(undefined)}</div>
     <div class="wl"></div>
     <div class="wl"></div>
   </div>
