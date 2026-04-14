@@ -19,6 +19,7 @@ export default function PacientesPage() {
   const [filterIncomplete, setFilterIncomplete] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [createError, setCreateError] = useState<string | undefined>();
 
   const queryClient = useQueryClient();
   const { canCreatePatient, canEditPatient } = usePermissions();
@@ -45,6 +46,12 @@ export default function PacientesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       setIsAddingPatient(false);
+      setCreateError(undefined);
+    },
+    onError: (error: unknown) => {
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setCreateError(msg ?? "Erro ao cadastrar paciente");
     },
   });
 
@@ -247,9 +254,10 @@ export default function PacientesPage() {
       {/* Modals */}
       {isAddingPatient && (
         <PatientFormModal
-          onClose={() => setIsAddingPatient(false)}
+          onClose={() => { setIsAddingPatient(false); setCreateError(undefined); }}
           onSave={(data) => createMutation.mutate(data as Omit<Patient, "id">)}
           isSaving={createMutation.isPending}
+          saveError={createError}
         />
       )}
       {editingPatient && (

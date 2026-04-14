@@ -48,6 +48,7 @@ interface PatientFormModalProps {
   onClose: () => void;
   onSave: (data: Omit<Patient, "id"> | Partial<Patient>) => void;
   isSaving?: boolean;
+  saveError?: string;
 }
 
 const emptyForm = (): Omit<Patient, "id"> => ({
@@ -76,7 +77,7 @@ const emptyForm = (): Omit<Patient, "id"> => ({
   personType: "Física",
 });
 
-export function PatientFormModal({ patient, onClose, onSave, isSaving }: PatientFormModalProps) {
+export function PatientFormModal({ patient, onClose, onSave, isSaving, saveError }: PatientFormModalProps) {
   const [activeTab, setActiveTab] = useState<"cadastro" | "historico">("cadastro");
   const [form, setForm] = useState<Omit<Patient, "id">>(emptyForm());
   const [cpfError, setCpfError] = useState("");
@@ -277,14 +278,16 @@ export function PatientFormModal({ patient, onClose, onSave, isSaving }: Patient
                         </label>
                       </div>
                       <input
-                        className={`input ${cpfError ? "border-red-400" : ""} ${noCpf ? "bg-zinc-50 text-zinc-400 cursor-not-allowed" : ""}`}
+                        className={`input ${(cpfError || saveError) ? "border-red-400" : ""} ${noCpf ? "bg-zinc-50 text-zinc-400 cursor-not-allowed" : ""}`}
                         value={form.cpf ?? ""}
                         onChange={(e) => { set("cpf", maskCPF(e.target.value)); setCpfError(""); }}
                         onBlur={handleCPFBlur}
                         placeholder={noCpf ? "Não possui CPF" : "000.000.000-00"}
                         disabled={noCpf}
                       />
-                      {cpfError && <p className="mt-0.5 text-xs text-red-500">{cpfError}</p>}
+                      {(cpfError || saveError) && (
+                        <p className="mt-0.5 text-xs text-red-500">{cpfError || saveError}</p>
+                      )}
                     </div>
                     <div>
                       <label className="label">Cartão SUS</label>
