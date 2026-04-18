@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { X, FileDown, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { appointmentService } from "@/services/api";
@@ -33,16 +32,111 @@ function toLocalDateString(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
+function buildHtml(
+  appointments: Appointment[],
+  startDate: string,
+  endDate: string,
+  selectedDoctor: Doctor | undefined,
+  today: string,
+): string {
+  const grouped = appointments.reduce<Record<string, Appointment[]>>((acc, a) => {
+    (acc[a.date] = acc[a.date] || []).push(a);
+    return acc;
+  }, {});
+
+  const totalAtivos = appointments.filter((a) => a.isActive !== false).length;
+  const totalCancelados = appointments.filter((a) => a.isActive === false).length;
+
+  const showDoctor = !selectedDoctor;
+
+  const tableRows = (list: Appointment[]) =>
+    list.map((a, i) => `
+      <tr style="background:${i % 2 === 0 ? "#fff" : "#f9f9f9"};${a.isActive === false ? "opacity:0.5;" : ""}">
+        <td>${formatCallOrder(a.callOrder)}</td>
+        <td>${a.time}</td>
+        <td>${a.patient?.name ?? "—"}${a.isActive === false ? " (cancelado)" : ""}</td>
+        <td>${a.patient?.cpf ?? "—"}</td>
+        <td>${a.patient?.phone ?? "—"}</td>
+        ${showDoctor ? `<td>${a.doctor?.name ?? "—"}</td>` : ""}
+        <td>${a.category}</td>
+        <td>${a.type}</td>
+        <td>${a.procedureName ?? "—"}</td>
+        <td>${a.status}</td>
+      </tr>
+    `).join("");
+
+  const dayBlocks = Object.keys(grouped).sort().map((date) => `
+    <div class="day-block">
+      <p class="day-title">${formatDate(date)}</p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:42px">Chamada</th>
+            <th style="width:52px">Horário</th>
+            <th>Paciente</th>
+            <th style="width:90px">CPF</th>
+            <th style="width:100px">Telefone</th>
+            ${showDoctor ? "<th>Médico</th>" : ""}
+            <th style="width:70px">Categoria</th>
+            <th style="width:70px">Tipo</th>
+            <th>Procedimento</th>
+            <th style="width:90px">Status</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows(grouped[date])}</tbody>
+      </table>
+    </div>
+  `).join("");
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Relatório de Agendamentos</title>
+  <style>
+    @page { size: landscape; margin: 12mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 10px; color: #18181b; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #18181b; padding-bottom: 10px; margin-bottom: 14px; }
+    .header h1 { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+    .header p, .header-right p { font-size: 9px; color: #71717a; margin-top: 2px; }
+    .header-right { text-align: right; }
+    .day-block { margin-bottom: 16px; break-inside: avoid; }
+    .day-title { font-weight: bold; font-size: 10px; color: #3f3f46; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 9px; }
+    th { background: #f4f4f5; color: #71717a; text-align: left; padding: 3px 6px; border: 1px solid #e4e4e7; font-size: 8px; text-transform: uppercase; }
+    td { padding: 3px 6px; border: 1px solid #e4e4e7; }
+    .empty { text-align: center; color: #a1a1aa; padding: 24px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Clínica Olhos David Tayah</h1>
+      <p>Relatório de Agendamentos</p>
+    </div>
+    <div class="header-right">
+      <p>Período: ${formatDate(startDate)} a ${formatDate(endDate)}</p>
+      ${selectedDoctor ? `<p>Médico: ${selectedDoctor.name}</p>` : ""}
+      <p>Emitido em: ${formatDate(today)}</p>
+      <p>Total: ${totalAtivos} ativo(s)${totalCancelados > 0 ? ` · ${totalCancelados} cancelado(s)` : ""}</p>
+    </div>
+  </div>
+
+  ${appointments.length === 0
+    ? '<p class="empty">Nenhum agendamento no período.</p>'
+    : dayBlocks
+  }
+</body>
+</html>`;
+}
+
 export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, initialEndDate, onClose }: ReportModalProps) {
   const today = toLocalDateString(new Date());
   const [startDate, setStartDate] = useState(initialStartDate ?? today);
   const [endDate, setEndDate] = useState(initialEndDate ?? today);
   const [doctorId, setDoctorId] = useState(initialDoctorId);
   const [ready, setReady] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   const { data: appointments = [], isFetching } = useQuery({
     queryKey: ["report", startDate, endDate, doctorId],
@@ -51,204 +145,118 @@ export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, i
   });
 
   const selectedDoctor = doctors.find((d) => d.id === doctorId);
-
-  // Group by date
-  const grouped = appointments.reduce<Record<string, Appointment[]>>((acc, a) => {
-    (acc[a.date] = acc[a.date] || []).push(a);
-    return acc;
-  }, {});
+  const totalAtivos = appointments.filter((a) => a.isActive !== false).length;
+  const totalCancelados = appointments.filter((a) => a.isActive === false).length;
 
   const handleGenerate = () => setReady(true);
 
   const handlePrint = () => {
-    const el = document.getElementById("print-report");
-    if (el) el.style.display = "block";
-
-    const style = document.createElement("style");
-    style.id = "__report-print-style";
-    style.innerHTML = `
-      @page { size: landscape; margin: 12mm; }
-      @media print {
-        html, body { margin: 0 !important; padding: 0 !important; height: auto !important; }
-        body > * { display: none !important; }
-        #print-report { display: block !important; visibility: visible !important; margin: 0 !important; }
-        #print-report * { visibility: visible !important; }
-      }
-    `;
-    document.head.appendChild(style);
-    window.print();
-
+    const html = buildHtml(appointments, startDate, endDate, selectedDoctor, today);
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
     setTimeout(() => {
-      if (el) el.style.display = "none";
-      document.getElementById("__report-print-style")?.remove();
-    }, 500);
+      win.print();
+      win.close();
+    }, 300);
   };
 
-  const totalAtivos = appointments.filter((a) => a.isActive !== false).length;
-  const totalCancelados = appointments.filter((a) => a.isActive === false).length;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-xl">
 
-  const printDocument = (
-    <div id="print-report" style={{ display: "none" }} className="font-sans text-zinc-900 p-6 text-xs">
         {/* Header */}
-        <div className="flex items-start justify-between border-b-2 border-zinc-800 pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
           <div>
-            <h1 className="text-base font-bold uppercase tracking-wide">Clínica Olhos David Tayah</h1>
-            <p className="text-zinc-500">Relatório de Agendamentos</p>
+            <h2 className="text-sm font-semibold text-zinc-900">Relatório de Agendamentos</h2>
+            <p className="text-xs text-zinc-400">Selecione o período e o médico</p>
           </div>
-          <div className="text-right text-zinc-500">
-            <p>Período: {formatDate(startDate)} a {formatDate(endDate)}</p>
-            {selectedDoctor && <p>Médico: {selectedDoctor.name}</p>}
-            <p>Emitido em: {formatDate(today)}</p>
-            <p>Total: {totalAtivos} ativo(s) · {totalCancelados} cancelado(s)</p>
-          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 text-zinc-500">
+            <X size={16} />
+          </button>
         </div>
 
-        {/* Tables per day */}
-        {Object.keys(grouped).sort().map((date) => (
-          <div key={date} className="mb-5 break-inside-avoid">
-            <p className="font-bold text-zinc-700 mb-1">{formatDate(date)}</p>
-            <table className="w-full border-collapse text-[10px]">
-              <thead>
-                <tr className="bg-zinc-100 text-zinc-500 text-left">
-                  <th className="border border-zinc-200 px-2 py-1 w-10">Chamada</th>
-                  <th className="border border-zinc-200 px-2 py-1 w-14">Horário</th>
-                  <th className="border border-zinc-200 px-2 py-1">Paciente</th>
-                  <th className="border border-zinc-200 px-2 py-1 w-20">CPF</th>
-                  <th className="border border-zinc-200 px-2 py-1 w-24">Telefone</th>
-                  {!selectedDoctor && <th className="border border-zinc-200 px-2 py-1">Médico</th>}
-                  <th className="border border-zinc-200 px-2 py-1 w-16">Categoria</th>
-                  <th className="border border-zinc-200 px-2 py-1 w-16">Tipo</th>
-                  <th className="border border-zinc-200 px-2 py-1">Procedimento</th>
-                  <th className="border border-zinc-200 px-2 py-1 w-20">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {grouped[date].map((a, i) => (
-                  <tr key={a.id} className={`${i % 2 === 0 ? "bg-white" : "bg-zinc-50"} ${a.isActive === false ? "opacity-50" : ""}`}>
-                    <td className="border border-zinc-200 px-2 py-1 font-mono text-center">{formatCallOrder(a.callOrder)}</td>
-                    <td className="border border-zinc-200 px-2 py-1 font-mono">{a.time}</td>
-                    <td className="border border-zinc-200 px-2 py-1 font-medium">{a.patient?.name ?? "—"}{a.isActive === false ? " (cancelado)" : ""}</td>
-                    <td className="border border-zinc-200 px-2 py-1">{a.patient?.cpf ?? "—"}</td>
-                    <td className="border border-zinc-200 px-2 py-1">{a.patient?.phone ?? "—"}</td>
-                    {!selectedDoctor && <td className="border border-zinc-200 px-2 py-1">{a.doctor?.name ?? "—"}</td>}
-                    <td className="border border-zinc-200 px-2 py-1">{a.category}</td>
-                    <td className="border border-zinc-200 px-2 py-1">{a.type}</td>
-                    <td className="border border-zinc-200 px-2 py-1">{a.procedureName ?? "—"}</td>
-                    <td className="border border-zinc-200 px-2 py-1">{a.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
-
-        {appointments.length === 0 && (
-          <p className="text-zinc-400 text-center py-8">Nenhum agendamento no período.</p>
-        )}
-    </div>
-  );
-
-  return (
-    <>
-      {/* Portal: print document renderizado direto no body */}
-      {mounted && createPortal(printDocument, document.body)}
-
-      {/* ── Screen modal ────────────────────────────────────────────── */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:hidden">
-        <div className="flex w-full max-w-lg flex-col rounded-xl bg-white shadow-xl">
-
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+        {/* Filters */}
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900">Relatório de Agendamentos</h2>
-              <p className="text-xs text-zinc-400">Selecione o período e o médico</p>
-            </div>
-            <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 text-zinc-500">
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* Filters */}
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="label">Data inicial</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={startDate}
-                  onChange={(e) => { setStartDate(e.target.value); setReady(false); }}
-                />
-              </div>
-              <div>
-                <label className="label">Data final</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={endDate}
-                  min={startDate}
-                  onChange={(e) => { setEndDate(e.target.value); setReady(false); }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="label">Médico</label>
-              <select
+              <label className="label">Data inicial</label>
+              <input
+                type="date"
                 className="input"
-                value={doctorId}
-                onChange={(e) => { setDoctorId(e.target.value); setReady(false); }}
-              >
-                <option value="" disabled>Selecionar médico...</option>
-                {doctors.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
+                value={startDate}
+                onChange={(e) => { setStartDate(e.target.value); setReady(false); }}
+              />
             </div>
-
-            {/* Preview count */}
-            {ready && !isFetching && (
-              <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-4 py-3 text-sm text-zinc-700">
-                <span className="font-semibold">{appointments.length}</span> agendamento(s) encontrado(s)
-                {totalCancelados > 0 && (
-                  <span className="text-zinc-400"> · {totalCancelados} cancelado(s)</span>
-                )}
-              </div>
-            )}
+            <div>
+              <label className="label">Data final</label>
+              <input
+                type="date"
+                className="input"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => { setEndDate(e.target.value); setReady(false); }}
+              />
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          <div>
+            <label className="label">Médico</label>
+            <select
+              className="input"
+              value={doctorId}
+              onChange={(e) => { setDoctorId(e.target.value); setReady(false); }}
             >
-              Cancelar
-            </button>
-            {!ready ? (
-              <button
-                onClick={handleGenerate}
-                disabled={!doctorId}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Gerar relatório
-              </button>
-            ) : isFetching ? (
-              <button disabled className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-70">
-                <Loader2 size={14} className="animate-spin" /> Carregando...
-              </button>
-            ) : (
-              <button
-                onClick={handlePrint}
-                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                <FileDown size={14} /> Imprimir / Salvar PDF
-              </button>
-            )}
+              <option value="" disabled>Selecionar médico...</option>
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
+
+          {ready && !isFetching && (
+            <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-4 py-3 text-sm text-zinc-700">
+              <span className="font-semibold">{appointments.length}</span> agendamento(s) encontrado(s)
+              {totalCancelados > 0 && (
+                <span className="text-zinc-400"> · {totalCancelados} cancelado(s)</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Cancelar
+          </button>
+          {!ready ? (
+            <button
+              onClick={handleGenerate}
+              disabled={!doctorId}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Gerar relatório
+            </button>
+          ) : isFetching ? (
+            <button disabled className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-70">
+              <Loader2 size={14} className="animate-spin" /> Carregando...
+            </button>
+          ) : (
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              <FileDown size={14} /> Imprimir / Salvar PDF
+            </button>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
