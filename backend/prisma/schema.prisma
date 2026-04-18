@@ -111,6 +111,8 @@ model Appointment {
   obsAgenda     String?
   obsTratamento String?
   isRegistered  Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  callOrder     Int?
   receptionist  String?
   arrivalTime   String?
   wait          String?

@@ -69,6 +69,17 @@ export class CreateAppointmentDto {
   @IsBoolean()
   isRegistered?: boolean;
 
+  @ApiPropertyOptional({ default: true })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  callOrder?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

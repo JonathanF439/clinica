@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { doctorService, patientService, appointmentService, procedureService } from "@/services/api";
 import { useAuth } from "@/context/auth-context";
@@ -19,6 +19,7 @@ function toLocalDateString(date: Date): string {
 
 export default function NovoAgendamentoPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [patientSearch, setPatientSearch] = useState("");
   const [debouncedPatientSearch, setDebouncedPatientSearch] = useState("");
@@ -34,8 +35,8 @@ export default function NovoAgendamentoPage() {
 
   const [form, setForm] = useState<Omit<Appointment, "id" | "patient" | "doctor">>({
     patientId: "",
-    doctorId: "",
-    date: toLocalDateString(new Date()),
+    doctorId: searchParams.get("doctorId") ?? "",
+    date: searchParams.get("date") ?? toLocalDateString(new Date()),
     time: "08:00",
     category: "SUS",
     type: "CONSULTA",
@@ -96,7 +97,10 @@ export default function NovoAgendamentoPage() {
 
   const createMutation = useMutation({
     mutationFn: appointmentService.create,
-    onSuccess: () => router.push("/agenda"),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      router.push(`/agenda?date=${created.date}`);
+    },
   });
 
   const set = (key: keyof typeof form, val: unknown) =>
@@ -333,7 +337,7 @@ export default function NovoAgendamentoPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => router.push("/agenda")}
+              onClick={() => router.push(`/agenda?date=${form.date}`)}
               className="rounded-lg border border-zinc-200 px-5 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
             >
               Cancelar

@@ -11,6 +11,8 @@ export class AppointmentService {
     date?: string,
     doctorId?: string,
     currentUser?: { id: string; role: string },
+    startDate?: string,
+    endDate?: string,
   ) {
     let resolvedDoctorId = doctorId;
 
@@ -22,13 +24,33 @@ export class AppointmentService {
       resolvedDoctorId = linkedDoctor.id;
     }
 
+    let dateFilter: object = {};
+    if (startDate && endDate) {
+      // Parse without timezone by splitting the string directly
+      const [sy, sm, sd] = startDate.split('-').map(Number);
+      const [ey, em, ed] = endDate.split('-').map(Number);
+      const cur = new Date(sy, sm - 1, sd);
+      const end = new Date(ey, em - 1, ed);
+      const dates: string[] = [];
+      while (cur <= end) {
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, '0');
+        const d = String(cur.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${d}`);
+        cur.setDate(cur.getDate() + 1);
+      }
+      dateFilter = { date: { in: dates } };
+    } else if (date) {
+      dateFilter = { date };
+    }
+
     return this.prisma.appointment.findMany({
       where: {
-        ...(date ? { date } : {}),
+        ...dateFilter,
         ...(resolvedDoctorId ? { doctorId: resolvedDoctorId } : {}),
       },
       include: { patient: true, doctor: true },
-      orderBy: { time: 'asc' },
+      orderBy: [{ date: 'asc' }, { callOrder: 'asc' }, { time: 'asc' }],
     });
   }
 
@@ -49,9 +71,14 @@ export class AppointmentService {
     return appt;
   }
 
-  create(dto: CreateAppointmentDto) {
+  async create(dto: CreateAppointmentDto) {
+    // Auto-assign callOrder: next number for this doctor+date
+    const count = await this.prisma.appointment.count({
+      where: { doctorId: dto.doctorId, date: dto.date },
+    });
+
     return this.prisma.appointment.create({
-      data: dto,
+      data: { ...dto, callOrder: count + 1 },
       include: { patient: true, doctor: true },
     });
   }
@@ -72,5 +99,13 @@ export class AppointmentService {
       data: { status },
       include: { patient: true, doctor: true },
     });
+  }
+
+  async reorder(items: { id: string; callOrder: number }[]) {
+    await this.prisma.$transaction(
+      items.map(({ id, callOrder }) =>
+        this.prisma.appointment.update({ where: { id }, data: { callOrder } }),
+      ),
+    );
   }
 }

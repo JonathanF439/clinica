@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import type { Appointment, Doctor, Procedure } from "@/types/clinic";
 import { CATEGORIES, APPOINTMENT_TYPES, APPOINTMENT_STATUSES } from "@/lib/constants";
 import { ProcedureCombobox } from "@/components/shared/ProcedureCombobox";
@@ -13,6 +13,7 @@ interface EditAppointmentModalProps {
   onClose: () => void;
   onSave: (id: string, data: Partial<Appointment>) => void;
   isSaving?: boolean;
+  canDelete?: boolean;
 }
 
 export function EditAppointmentModal({
@@ -22,10 +23,13 @@ export function EditAppointmentModal({
   onClose,
   onSave,
   isSaving,
+  canDelete = true,
 }: EditAppointmentModalProps) {
   const [form, setForm] = useState<Partial<Appointment>>({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
+    setConfirmDelete(false);
     if (appointment) {
       setForm({
         date: appointment.date,
@@ -36,6 +40,7 @@ export function EditAppointmentModal({
         procedureCode: appointment.procedureCode,
         procedureName: appointment.procedureName,
         status: appointment.status,
+        callOrder: appointment.callOrder,
         obsAgenda: appointment.obsAgenda ?? "",
         obsTratamento: appointment.obsTratamento ?? "",
         receptionist: appointment.receptionist ?? "",
@@ -70,8 +75,8 @@ export function EditAppointmentModal({
         <form onSubmit={handleSubmit} className="overflow-y-auto">
           <div className="space-y-5 p-6">
 
-            {/* Data, Horário, Status */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {/* Data, Horário, Chamada, Status */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="label">Data</label>
                 <input type="date" className="input" value={form.date ?? ""} onChange={(e) => set("date", e.target.value)} />
@@ -79,6 +84,17 @@ export function EditAppointmentModal({
               <div>
                 <label className="label">Horário</label>
                 <input type="time" className="input" value={form.time ?? ""} onChange={(e) => set("time", e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Chamada</label>
+                <input
+                  type="number"
+                  min={1}
+                  className="input"
+                  value={form.callOrder ?? ""}
+                  onChange={(e) => set("callOrder", e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder="Ex: 1"
+                />
               </div>
               <div>
                 <label className="label">Status</label>
@@ -152,13 +168,47 @@ export function EditAppointmentModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4 shrink-0">
-            <button type="button" onClick={onClose} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50">
-              Cancelar
-            </button>
-            <button type="submit" disabled={isSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-              {isSaving ? "Salvando..." : "Salvar"}
-            </button>
+          <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4 shrink-0">
+            {canDelete && (
+              <div className="flex items-center gap-2">
+                {confirmDelete ? (
+                  <>
+                    <span className="text-xs text-red-600 font-medium">Confirmar exclusão?</span>
+                    <button
+                      type="button"
+                      onClick={() => { onSave(appointment.id, { isActive: false }); onClose(); }}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                    >
+                      Sim, excluir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(false)}
+                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50"
+                    >
+                      Não
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={13} />
+                    Excluir agendamento
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <button type="button" onClick={onClose} className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50">
+                Cancelar
+              </button>
+              <button type="submit" disabled={isSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {isSaving ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

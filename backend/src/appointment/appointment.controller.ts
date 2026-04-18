@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -19,12 +19,16 @@ export class AppointmentController {
   @ApiOperation({ summary: 'Listar agendamentos por data e/ou médico' })
   @ApiQuery({ name: 'date', required: false })
   @ApiQuery({ name: 'doctorId', required: false })
+  @ApiQuery({ name: 'startDate', required: false })
+  @ApiQuery({ name: 'endDate', required: false })
   findByDate(
     @Query('date') date?: string,
     @Query('doctorId') doctorId?: string,
     @Request() req?: { user: { id: string; role: string } },
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
-    return this.appointmentService.findByDate(date, doctorId, req?.user);
+    return this.appointmentService.findByDate(date, doctorId, req?.user, startDate, endDate);
   }
 
   // IMPORTANT: This route must be declared BEFORE :id to prevent NestJS
@@ -48,6 +52,14 @@ export class AppointmentController {
   @ApiOperation({ summary: 'Criar agendamento' })
   create(@Body() dto: CreateAppointmentDto) {
     return this.appointmentService.create(dto);
+  }
+
+  @Patch('reorder')
+  @RequirePermission('appointment', 'update')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Reordenar chamadas' })
+  reorder(@Body() body: { items: { id: string; callOrder: number }[] }) {
+    return this.appointmentService.reorder(body.items);
   }
 
   @Patch(':id/status')

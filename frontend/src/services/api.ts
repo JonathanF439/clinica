@@ -49,6 +49,10 @@ export const appointmentService = {
     api
       .get<Appointment[]>("/appointments", { params: { date, doctorId } })
       .then((r) => r.data),
+  findByRange: (startDate: string, endDate: string, doctorId?: string) =>
+    api
+      .get<Appointment[]>("/appointments", { params: { startDate, endDate, doctorId } })
+      .then((r) => r.data),
   findById: (id: string) =>
     api.get<Appointment>(`/appointments/${id}`).then((r) => r.data),
   findByPatient: (patientId: string) =>
@@ -57,6 +61,8 @@ export const appointmentService = {
     api.post<Appointment>("/appointments", data).then((r) => r.data),
   update: (id: string, data: Partial<Omit<Appointment, "patient" | "doctor">>) =>
     api.patch<Appointment>(`/appointments/${id}`, data).then((r) => r.data),
+  reorder: (items: { id: string; callOrder: number }[]) =>
+    api.patch("/appointments/reorder", { items }),
 };
 
 // ─── Procedure Service ─────────────────────────────────────────────────────────

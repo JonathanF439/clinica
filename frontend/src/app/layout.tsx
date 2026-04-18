@@ -9,8 +9,9 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Clínica",
-  description: "Sistema de Gestão de Clínica",
+  title: "Clínica Olhos David Tayah",
+  description: "Sistema de Gestão — Clínica Olhos David Tayah",
+  icons: { icon: "/favicon.png" },
 };
 
 export default function RootLayout({

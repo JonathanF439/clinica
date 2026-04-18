@@ -29,6 +29,26 @@
   --color-rose-soft: #fff1f2;
 }
 
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible !important;
+  }
+  #print-area {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    z-index: 99999 !important;
+    padding: 2rem !important;
+  }
+}
+
+
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

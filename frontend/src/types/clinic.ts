@@ -82,6 +82,8 @@ export interface Appointment {
   obsAgenda?: string;
   obsTratamento?: string;
   isRegistered: boolean;
+  isActive?: boolean;
+  callOrder?: number;
   receptionist?: string;
   arrivalTime?: string;
   wait?: string;

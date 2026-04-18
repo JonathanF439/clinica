@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -77,12 +78,18 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       {/* Header */}
       <div className="flex h-16 items-center gap-3 border-b border-zinc-100 px-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
-          CT
+        <div className="shrink-0">
+          <Image
+            src="/logo.png"
+            alt="Clínica Olhos David Tayah"
+            width={isCollapsed && !isMobile ? 32 : 36}
+            height={isCollapsed && !isMobile ? 32 : 36}
+            className="rounded-lg object-contain"
+          />
         </div>
         {(!isCollapsed || isMobile) && (
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-semibold text-zinc-900">CLÍNICA TAYAH</p>
+            <p className="truncate text-sm font-semibold text-zinc-900 leading-tight">Olhos David Tayah</p>
             <p className="truncate text-[11px] text-zinc-400">Oftalmologia</p>
           </div>
         )}
