@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: clinica-db
     restart: unless-stopped
     environment:
@@ -50,6 +50,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${API_URL}
       NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      BACKEND_INTERNAL_URL: http://backend:5000
     ports:
       - '${FRONTEND_PORT}:3000'
     volumes:

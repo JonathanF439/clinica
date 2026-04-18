@@ -20,7 +20,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(username, password);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch {
       setError("Login ou senha inválidos.");
     } finally {
