@@ -11,6 +11,7 @@ interface ReportModalProps {
   doctors: Doctor[];
   initialDoctorId?: string;
   initialStartDate?: string;
+  initialEndDate?: string;
   onClose: () => void;
 }
 
@@ -32,10 +33,10 @@ function toLocalDateString(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
-export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, onClose }: ReportModalProps) {
+export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, initialEndDate, onClose }: ReportModalProps) {
   const today = toLocalDateString(new Date());
   const [startDate, setStartDate] = useState(initialStartDate ?? today);
-  const [endDate, setEndDate] = useState(today);
+  const [endDate, setEndDate] = useState(initialEndDate ?? today);
   const [doctorId, setDoctorId] = useState(initialDoctorId);
   const [ready, setReady] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -68,8 +69,9 @@ export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, o
     style.innerHTML = `
       @page { size: landscape; margin: 12mm; }
       @media print {
+        html, body { margin: 0 !important; padding: 0 !important; height: auto !important; }
         body > * { display: none !important; }
-        #print-report { display: block !important; visibility: visible !important; }
+        #print-report { display: block !important; visibility: visible !important; margin: 0 !important; }
         #print-report * { visibility: visible !important; }
       }
     `;

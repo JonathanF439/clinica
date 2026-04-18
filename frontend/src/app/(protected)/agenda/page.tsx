@@ -475,6 +475,7 @@ export default function AgendaPage() {
           doctors={doctors}
           initialDoctorId={selectedDoctorId === "all" ? "" : selectedDoctorId}
           initialStartDate={selectedDate}
+          initialEndDate={selectedDate}
           onClose={() => setShowReport(false)}
         />
       )}
