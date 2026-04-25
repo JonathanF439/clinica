@@ -32,8 +32,8 @@ export default function ProtectedLayout({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-200">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
       </div>
     );
   }
@@ -41,12 +41,12 @@ export default function ProtectedLayout({
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 font-sans">
+    <div className="flex min-h-screen bg-slate-200 font-sans">
       {/* Mobile top header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-800"
         >
           <Menu size={20} />
         </button>
@@ -54,7 +54,7 @@ export default function ProtectedLayout({
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
             CT
           </div>
-          <span className="text-sm font-semibold text-zinc-900">CLÍNICA TAYAH</span>
+          <span className="text-sm font-semibold text-slate-800">CLÍNICA TAYAH</span>
         </div>
         <div className="w-8" />
       </header>

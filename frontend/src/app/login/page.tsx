@@ -60,7 +60,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 px-6 py-12">
+      <div className="flex flex-1 flex-col items-center justify-center bg-gray-950 px-6 py-12">
         <div className="w-full max-w-sm">
 
           {/* Mobile logo */}
@@ -72,19 +72,19 @@ export default function LoginPage() {
               height={80}
               className="object-contain mb-3"
             />
-            <h1 className="text-xl font-bold text-zinc-900 text-center">
+            <h1 className="text-xl font-bold text-white text-center">
               Clínica Olhos David Tayah
             </h1>
           </div>
 
           <div className="mb-7 lg:block hidden">
-            <h2 className="text-2xl font-bold text-zinc-900">Bem-vindo</h2>
-            <p className="text-sm text-zinc-500 mt-1">Acesse sua conta para continuar</p>
+            <h2 className="text-2xl font-bold text-white">Bem-vindo</h2>
+            <p className="text-sm text-gray-400 mt-1">Acesse sua conta para continuar</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Login
               </label>
               <input
@@ -94,12 +94,12 @@ export default function LoginPage() {
                 required
                 autoFocus
                 placeholder="Digite seu login"
-                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Senha
               </label>
               <div className="relative">
@@ -109,12 +109,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Digite sua senha"
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 pr-10 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 pr-10 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400 hover:text-zinc-600"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-300 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-sm text-red-600">
+              <p className="rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">
                 {error}
               </p>
             )}
@@ -142,7 +142,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition mt-2"
+              className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50 transition mt-2"
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </button>

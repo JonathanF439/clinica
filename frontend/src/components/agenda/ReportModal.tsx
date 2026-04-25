@@ -178,84 +178,92 @@ export function ReportModal({ doctors, initialDoctorId = "", initialStartDate, i
           </button>
         </div>
 
-        {/* Filters */}
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Data inicial</label>
-              <input
-                type="date"
-                className="input"
-                value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setReady(false); }}
-              />
+        {/* Filters + Footer inside form so Enter triggers the primary action */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!ready) handleGenerate();
+            else if (!isFetching) handlePrint();
+          }}
+        >
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Data inicial</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={startDate}
+                  onChange={(e) => { setStartDate(e.target.value); setReady(false); }}
+                />
+              </div>
+              <div>
+                <label className="label">Data final</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={endDate}
+                  min={startDate}
+                  onChange={(e) => { setEndDate(e.target.value); setReady(false); }}
+                />
+              </div>
             </div>
+
             <div>
-              <label className="label">Data final</label>
-              <input
-                type="date"
+              <label className="label">Médico</label>
+              <select
                 className="input"
-                value={endDate}
-                min={startDate}
-                onChange={(e) => { setEndDate(e.target.value); setReady(false); }}
-              />
+                value={doctorId}
+                onChange={(e) => { setDoctorId(e.target.value); setReady(false); }}
+              >
+                <option value="" disabled>Selecionar médico...</option>
+                {doctors.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
             </div>
+
+            {ready && !isFetching && (
+              <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-4 py-3 text-sm text-zinc-700">
+                <span className="font-semibold">{appointments.length}</span> agendamento(s) encontrado(s)
+                {totalCancelados > 0 && (
+                  <span className="text-zinc-400"> · {totalCancelados} cancelado(s)</span>
+                )}
+              </div>
+            )}
           </div>
 
-          <div>
-            <label className="label">Médico</label>
-            <select
-              className="input"
-              value={doctorId}
-              onChange={(e) => { setDoctorId(e.target.value); setReady(false); }}
+          {/* Footer */}
+          <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
             >
-              <option value="" disabled>Selecionar médico...</option>
-              {doctors.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
+              Cancelar
+            </button>
+            {!ready ? (
+              <button
+                type="submit"
+                disabled={!doctorId}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Gerar relatório
+              </button>
+            ) : isFetching ? (
+              <button type="button" disabled className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-70">
+                <Loader2 size={14} className="animate-spin" /> Carregando...
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                <FileDown size={14} /> Imprimir / Salvar PDF
+              </button>
+            )}
           </div>
-
-          {ready && !isFetching && (
-            <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-4 py-3 text-sm text-zinc-700">
-              <span className="font-semibold">{appointments.length}</span> agendamento(s) encontrado(s)
-              {totalCancelados > 0 && (
-                <span className="text-zinc-400"> · {totalCancelados} cancelado(s)</span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
-          >
-            Cancelar
-          </button>
-          {!ready ? (
-            <button
-              onClick={handleGenerate}
-              disabled={!doctorId}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Gerar relatório
-            </button>
-          ) : isFetching ? (
-            <button disabled className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-70">
-              <Loader2 size={14} className="animate-spin" /> Carregando...
-            </button>
-          ) : (
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-            >
-              <FileDown size={14} /> Imprimir / Salvar PDF
-            </button>
-          )}
-        </div>
+        </form>
       </div>
     </div>
   );

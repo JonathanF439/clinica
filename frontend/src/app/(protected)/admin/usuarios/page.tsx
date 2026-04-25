@@ -76,7 +76,23 @@ function UserModal({
             <X size={16} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-3 p-5">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            if (target.tagName === "BUTTON" && (target as HTMLButtonElement).type === "submit") return;
+            e.preventDefault();
+            const focusable = Array.from(
+              e.currentTarget.querySelectorAll<HTMLElement>(
+                'input:not([type="radio"]), select, button[type="submit"]'
+              )
+            ).filter((el) => !(el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement).disabled);
+            const index = focusable.indexOf(target);
+            if (index >= 0 && index < focusable.length - 1) focusable[index + 1].focus();
+          }}
+          className="space-y-3 p-5"
+        >
           <div>
             <label className="label">Nome Completo *</label>
             <input
@@ -183,7 +199,7 @@ export default function UsuariosPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Usuários</h1>
-          <p className="text-sm text-zinc-400">{users.length} cadastrados</p>
+          <p className="text-sm text-zinc-600">{users.length} cadastrados</p>
         </div>
         <button
           onClick={() => { setIsAdding(true); setModalError(""); }}
@@ -200,14 +216,14 @@ export default function UsuariosPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
           </div>
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
             <ShieldCheck size={32} className="mb-2 opacity-30" />
             <p className="text-sm">Nenhum usuário cadastrado</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-500">
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">Login</th>
                 <th className="px-4 py-3">Perfil</th>
@@ -219,13 +235,13 @@ export default function UsuariosPage() {
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                   <td className="px-4 py-3 font-medium text-zinc-900">{user.name}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{user.login}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-600">{user.login}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-600"}`}>
                       {ROLE_LABELS[user.role] ?? user.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{formatDate(user.createdAt)}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-600">{formatDate(user.createdAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end">
                       <button

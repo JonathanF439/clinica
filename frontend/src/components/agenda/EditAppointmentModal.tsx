@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
 import type { Appointment, Doctor, Procedure } from "@/types/clinic";
-import { CATEGORIES, APPOINTMENT_TYPES, APPOINTMENT_STATUSES } from "@/lib/constants";
+import { CATEGORIES, APPOINTMENT_TYPES } from "@/lib/constants";
 import { ProcedureCombobox } from "@/components/shared/ProcedureCombobox";
+import { useAppointmentStatuses } from "@/hooks/useAppointmentStatuses";
 
 interface EditAppointmentModalProps {
   appointment: Appointment | null;
@@ -27,6 +28,7 @@ export function EditAppointmentModal({
 }: EditAppointmentModalProps) {
   const [form, setForm] = useState<Partial<Appointment>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const { activeStatuses, badgeMap } = useAppointmentStatuses();
 
   useEffect(() => {
     setConfirmDelete(false);
@@ -72,7 +74,25 @@ export function EditAppointmentModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            if (target.tagName === "TEXTAREA") return;
+            if (target.tagName === "INPUT" && (target as HTMLInputElement).type === "radio") return;
+            if (target.tagName === "BUTTON" && (target as HTMLButtonElement).type === "submit") return;
+            e.preventDefault();
+            const focusable = Array.from(
+              e.currentTarget.querySelectorAll<HTMLElement>(
+                'input:not([type="radio"]), select, textarea, button[type="submit"]'
+              )
+            ).filter((el) => !(el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLButtonElement).disabled);
+            const index = focusable.indexOf(target);
+            if (index >= 0 && index < focusable.length - 1) focusable[index + 1].focus();
+          }}
+          className="overflow-y-auto"
+        >
           <div className="space-y-5 p-6">
 
             {/* Data, Horário, Chamada, Status */}
@@ -98,8 +118,12 @@ export function EditAppointmentModal({
               </div>
               <div>
                 <label className="label">Status</label>
-                <select className="input" value={form.status ?? ""} onChange={(e) => set("status", e.target.value)}>
-                  {APPOINTMENT_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                <select
+                  className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer w-full ${badgeMap[form.status ?? ""] ?? "text-zinc-600 bg-zinc-100"}`}
+                  value={form.status ?? ""}
+                  onChange={(e) => set("status", e.target.value)}
+                >
+                  {activeStatuses.map((s) => <option key={s.id}>{s.name}</option>)}
                 </select>
               </div>
             </div>

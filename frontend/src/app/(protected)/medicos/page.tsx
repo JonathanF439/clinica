@@ -49,6 +49,19 @@ function DoctorModal({
             if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
             onSave(form);
           }}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            if (target.tagName === "BUTTON" && (target as HTMLButtonElement).type === "submit") return;
+            e.preventDefault();
+            const focusable = Array.from(
+              e.currentTarget.querySelectorAll<HTMLElement>(
+                'input:not([type="radio"]), select, button[type="submit"]'
+              )
+            ).filter((el) => !(el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement).disabled);
+            const index = focusable.indexOf(target);
+            if (index >= 0 && index < focusable.length - 1) focusable[index + 1].focus();
+          }}
           className="space-y-3 p-5"
         >
           <div>
@@ -107,7 +120,7 @@ export default function MedicosPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Médicos</h1>
-          <p className="text-sm text-zinc-400">{doctors.length} cadastrados</p>
+          <p className="text-sm text-zinc-600">{doctors.length} cadastrados</p>
         </div>
         {canCreateDoctor && (
           <button
@@ -126,14 +139,14 @@ export default function MedicosPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
           </div>
         ) : doctors.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
             <Stethoscope size={32} className="mb-2 opacity-30" />
             <p className="text-sm">Nenhum médico cadastrado</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-500">
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">CRM</th>
                 {canEditDoctor && <th className="px-4 py-3 text-right">Ações</th>}
@@ -143,7 +156,7 @@ export default function MedicosPage() {
               {doctors.map((doctor) => (
                 <tr key={doctor.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                   <td className="px-4 py-3 font-medium text-zinc-900">{doctor.name}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-zinc-500">{doctor.crm ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-zinc-600">{doctor.crm ?? "—"}</td>
                   {canEditDoctor && (
                     <td className="px-4 py-3">
                       <div className="flex justify-end">

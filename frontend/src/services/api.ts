@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Doctor, Patient, Appointment, Procedure, Permission, User, CreateUserPayload } from "@/types/clinic";
+import type { Doctor, Patient, Appointment, Procedure, Permission, User, CreateUserPayload, AppointmentStatusConfig } from "@/types/clinic";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -67,7 +67,13 @@ export const appointmentService = {
 
 // ─── Procedure Service ─────────────────────────────────────────────────────────
 export const procedureService = {
-  findAll: () => api.get<Procedure[]>("/procedures").then((r) => r.data),
+  findAll: (search?: string) =>
+    api.get<Procedure[]>("/procedures", { params: search ? { search } : {} }).then((r) => r.data),
+  create: (data: Omit<Procedure, "id">) =>
+    api.post<Procedure>("/procedures", data).then((r) => r.data),
+  update: (id: string, data: Partial<Omit<Procedure, "id">>) =>
+    api.patch<Procedure>(`/procedures/${id}`, data).then((r) => r.data),
+  remove: (id: string) => api.delete(`/procedures/${id}`),
 };
 
 // ─── Appointment Status ────────────────────────────────────────────────────────
@@ -81,6 +87,17 @@ export const permissionService = {
   findAll: () => api.get<Permission[]>("/permissions").then((r) => r.data),
   update: (role: string, resource: string, action: string, allowed: boolean) =>
     api.patch<Permission>("/permissions", { role, resource, action, allowed }).then((r) => r.data),
+};
+
+// ─── Appointment Status Catalog ────────────────────────────────────────────────
+export const statusCatalogService = {
+  findAll: () =>
+    api.get<AppointmentStatusConfig[]>("/appointment-statuses").then((r) => r.data),
+  create: (data: Omit<AppointmentStatusConfig, "id">) =>
+    api.post<AppointmentStatusConfig>("/appointment-statuses", data).then((r) => r.data),
+  update: (id: string, data: Partial<Omit<AppointmentStatusConfig, "id">>) =>
+    api.patch<AppointmentStatusConfig>(`/appointment-statuses/${id}`, data).then((r) => r.data),
+  remove: (id: string) => api.delete(`/appointment-statuses/${id}`),
 };
 
 // ─── User Service ──────────────────────────────────────────────────────────────

@@ -24,6 +24,15 @@ export interface Procedure {
   id: string;
   code: string;
   name: string;
+  isCirurgia?: boolean;
+}
+
+export interface AppointmentStatusConfig {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
+  isActive: boolean;
 }
 
 export interface Doctor {

@@ -66,7 +66,7 @@ export default function NovoAgendamentoPage() {
 
   const { data: procedures = [] } = useQuery({
     queryKey: ["procedures"],
-    queryFn: procedureService.findAll,
+    queryFn: () => procedureService.findAll(),
   });
 
   const { data: patientResults = [], isFetching: isSearching } = useQuery({

@@ -171,7 +171,17 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
 
         {/* Patient block */}
         <div className="mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Dados do Paciente</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Dados do Paciente</p>
+            {appointment.callOrder && (
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">Chamada</span>
+                <span className="text-4xl font-black text-zinc-900 leading-none">
+                  {String(appointment.callOrder).padStart(3, "0")}
+                </span>
+              </div>
+            )}
+          </div>
           <div className="border border-zinc-200 rounded-lg p-4 space-y-3">
             <p className="text-base font-bold uppercase">{p?.name ?? "—"}</p>
             <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-sm">
@@ -326,7 +336,24 @@ export function AppointmentDetailsModal({ appointment, onClose }: AppointmentDet
 
           {/* Tab: Cadastro */}
           {activeTab === "cadastro" && (
-            <form onSubmit={handlePatientSave} className="flex flex-col flex-1 overflow-hidden">
+            <form
+              onSubmit={handlePatientSave}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                const target = e.target as HTMLElement;
+                if (target.tagName === "INPUT" && (target as HTMLInputElement).type === "radio") return;
+                if (target.tagName === "BUTTON" && (target as HTMLButtonElement).type === "submit") return;
+                e.preventDefault();
+                const focusable = Array.from(
+                  e.currentTarget.querySelectorAll<HTMLElement>(
+                    'input:not([type="radio"]):not([readonly]), select, button[type="submit"]'
+                  )
+                ).filter((el) => !(el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement).disabled);
+                const index = focusable.indexOf(target);
+                if (index >= 0 && index < focusable.length - 1) focusable[index + 1].focus();
+              }}
+              className="flex flex-col flex-1 overflow-hidden"
+            >
               <div className="overflow-y-auto p-6 space-y-6">
 
                 <section>

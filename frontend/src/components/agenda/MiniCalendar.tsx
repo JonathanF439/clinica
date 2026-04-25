@@ -45,16 +45,16 @@ export function MiniCalendar({ selectedDate, onDateSelect, appointmentDates = []
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100">
+    <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-200">
       {/* Header */}
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={prevMonth} className="rounded p-1 hover:bg-zinc-100 text-zinc-500">
+        <button onClick={prevMonth} className="rounded p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
           <ChevronLeft size={16} />
         </button>
-        <span className="text-sm font-semibold text-zinc-800">
+        <span className="text-sm font-semibold text-slate-800">
           {MONTHS[month]} {year}
         </span>
-        <button onClick={nextMonth} className="rounded p-1 hover:bg-zinc-100 text-zinc-500">
+        <button onClick={nextMonth} className="rounded p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -62,7 +62,7 @@ export function MiniCalendar({ selectedDate, onDateSelect, appointmentDates = []
       {/* Day headers */}
       <div className="mb-1 grid grid-cols-7 gap-0.5">
         {DAYS.map((d) => (
-          <div key={d} className="text-center text-[10px] font-medium text-zinc-400">
+          <div key={d} className="text-center text-[10px] font-medium text-slate-500">
             {d}
           </div>
         ))}
@@ -87,13 +87,13 @@ export function MiniCalendar({ selectedDate, onDateSelect, appointmentDates = []
                 isSelected
                   ? "bg-blue-600 text-white font-semibold"
                   : isToday
-                  ? "border border-blue-400 text-blue-600 font-semibold"
-                  : "text-zinc-700 hover:bg-zinc-100"
+                  ? "border border-blue-500 text-blue-600 font-semibold"
+                  : "text-slate-600 hover:bg-slate-100"
               )}
             >
               {day}
               {hasAppt && !isSelected && (
-                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-blue-400" />
+                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-blue-500" />
               )}
             </button>
           );

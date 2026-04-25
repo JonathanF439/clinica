@@ -125,9 +125,20 @@ model Appointment {
 }
 
 model Procedure {
-  id   String @id @default(cuid())
-  code String @unique
-  name String
+  id         String  @id @default(cuid())
+  code       String  @unique
+  name       String
+  isCirurgia Boolean @default(false)
 
   @@map("procedures")
+}
+
+model AppointmentStatus {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  color    String  @default("zinc")
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  @@map("appointment_statuses")
 }

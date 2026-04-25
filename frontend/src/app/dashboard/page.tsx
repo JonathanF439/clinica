@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f8f7]">
+      <div className="flex min-h-screen items-center justify-center bg-slate-200">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1d4ed8] border-t-transparent" />
       </div>
     );
@@ -83,7 +83,7 @@ export default function DashboardPage() {
   const preview = appointments.slice(0, 8);
 
   return (
-    <div className="flex min-h-screen bg-[#f8f8f7] font-sans">
+    <div className="flex min-h-screen bg-slate-200 font-sans">
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">

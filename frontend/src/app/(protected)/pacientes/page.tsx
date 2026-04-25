@@ -93,7 +93,7 @@ export default function PacientesPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Pacientes</h1>
-          <p className="text-sm text-zinc-400">{filtered.length} cadastrados</p>
+          <p className="text-sm text-zinc-600">{filtered.length} cadastrados</p>
         </div>
         {canCreatePatient && (
           <button
@@ -138,14 +138,14 @@ export default function PacientesPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
             <Users size={32} className="mb-2 opacity-30" />
             <p className="text-sm">Nenhum paciente encontrado</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+              <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-500">
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">CPF</th>
                 <th className="px-4 py-3">Cartão SUS</th>
@@ -176,10 +176,10 @@ export default function PacientesPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">{patient.cpf ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">{patient.susCard ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">{patient.phone ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">
+                    <td className="px-4 py-3 text-xs text-zinc-600">{patient.cpf ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-600">{patient.susCard ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-600">{patient.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-600">
                       {calcAge(patient.birthDate) !== null ? `${calcAge(patient.birthDate)} anos` : "—"}
                     </td>
                     {canEditPatient && (
@@ -200,11 +200,11 @@ export default function PacientesPage() {
                   {expandedPatientId === patient.id && (
                     <tr key={`${patient.id}-history`} className="bg-blue-50/50">
                       <td colSpan={5} className="px-6 py-3">
-                        <p className="mb-2 text-[11px] font-semibold uppercase text-zinc-400">
+                        <p className="mb-2 text-[11px] font-semibold uppercase text-zinc-500">
                           Histórico de Agendamentos
                         </p>
                         {patientAppointments.length === 0 ? (
-                          <p className="text-xs text-zinc-400">Nenhum agendamento encontrado</p>
+                          <p className="text-xs text-zinc-500">Nenhum agendamento encontrado</p>
                         ) : (
                           <div className="space-y-1.5">
                             {patientAppointments.map((appt) => (
@@ -219,12 +219,12 @@ export default function PacientesPage() {
                                   <AppointmentStatusBadge status={appt.status} />
                                 </div>
                                 {(appt.procedureName || appt.obsAgenda) && (
-                                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-zinc-400">
+                                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-zinc-600">
                                     {appt.procedureName && (
-                                      <span><span className="font-medium text-zinc-500">Proc.: </span>{appt.procedureName}</span>
+                                      <span><span className="font-medium text-zinc-700">Proc.: </span>{appt.procedureName}</span>
                                     )}
                                     {appt.obsAgenda && (
-                                      <span><span className="font-medium text-zinc-500">Obs.: </span>{appt.obsAgenda}</span>
+                                      <span><span className="font-medium text-zinc-700">Obs.: </span>{appt.obsAgenda}</span>
                                     )}
                                   </div>
                                 )}

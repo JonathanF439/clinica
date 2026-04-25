@@ -139,10 +139,10 @@ export default function PermissoesPage() {
   return (
     <div className="p-6">
       <div className="mb-2 flex items-center gap-3">
-        <Lock size={20} className="text-zinc-400" />
+        <Lock size={20} className="text-zinc-600" />
         <h1 className="text-xl font-bold text-zinc-900">Permissões</h1>
       </div>
-      <p className="mb-6 text-sm text-zinc-400">
+      <p className="mb-6 text-sm text-zinc-600">
         Configure o que cada perfil pode fazer. Alterações entram em vigor imediatamente.
         O perfil <strong>Administrador</strong> tem acesso total e não é configurável.
       </p>
@@ -150,7 +150,7 @@ export default function PermissoesPage() {
       <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+            <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-500">
               <th className="px-4 py-3 w-48">Permissão</th>
               {ROLES.map((role) => (
                 <th key={role} className="px-4 py-3 text-center">

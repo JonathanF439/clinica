@@ -47,6 +47,17 @@ const DEFAULT_PERMISSIONS: { role: UserRole; resource: string; action: string; a
   { role: UserRole.MEDICO,        resource: 'user',        action: 'read',          allowed: false },
 ];
 
+const APPOINTMENT_STATUSES_SEED = [
+  { name: 'Confirmado',        color: 'emerald', order: 1, isActive: true },
+  { name: 'Aguardando',        color: 'blue',    order: 2, isActive: true },
+  { name: 'Atendido',          color: 'purple',  order: 3, isActive: true },
+  { name: 'Não compareceu',    color: 'red',     order: 4, isActive: true },
+  { name: 'Paciente cancelou', color: 'orange',  order: 5, isActive: true },
+  { name: 'Sem cadastro',      color: 'zinc',    order: 6, isActive: true },
+  { name: 'Cadast.incompleto', color: 'amber',   order: 7, isActive: true },
+  { name: 'Horário bloqueado', color: 'dark',    order: 8, isActive: true },
+];
+
 const PROCEDURES = [
   { code: '1',  name: 'Consulta' },
   { code: '2',  name: 'Teste do Olhinho' },
@@ -109,6 +120,16 @@ const INITIAL_DOCTORS = [
 
 async function main() {
   console.log('Iniciando seed...');
+
+  // Appointment Statuses — upsert
+  for (const s of APPOINTMENT_STATUSES_SEED) {
+    await prisma.appointmentStatus.upsert({
+      where: { name: s.name },
+      update: {},
+      create: s,
+    });
+  }
+  console.log(`${APPOINTMENT_STATUSES_SEED.length} status de agendamento criados`);
 
   // Procedures — limpa e recria
   await prisma.procedure.deleteMany({});

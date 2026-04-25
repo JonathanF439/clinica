@@ -29,7 +29,8 @@ import { Pagination } from "@/components/shared/Pagination";
 import { AppointmentDetailsModal } from "@/components/agenda/AppointmentDetailsModal";
 import { EditAppointmentModal } from "@/components/agenda/EditAppointmentModal";
 import { ReportModal } from "@/components/agenda/ReportModal";
-import { APPOINTMENT_STATUSES, STATUS_TEXT_COLORS } from "@/lib/constants";
+import { STATUS_TEXT_COLORS } from "@/lib/constants";
+import { useAppointmentStatuses } from "@/hooks/useAppointmentStatuses";
 
 function toLocalDateString(date: Date): string {
   const y = date.getFullYear();
@@ -67,6 +68,7 @@ function SortableRow({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: appt.id });
+  const { activeStatuses, badgeMap } = useAppointmentStatuses();
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -82,7 +84,7 @@ function SortableRow({
       <tr
         ref={setNodeRef}
         style={style}
-        className={`border-b border-zinc-50 transition-colors ${isInactive ? "bg-zinc-50 opacity-60" : isDragging ? "bg-blue-50 shadow-lg" : "hover:bg-zinc-50/50"}`}
+        className={`border-b border-slate-100 transition-colors ${isInactive ? "bg-slate-50 opacity-60" : isDragging ? "bg-blue-50 shadow-lg" : "hover:bg-slate-50"}`}
       >
         {/* Drag handle + call order */}
         <td className="px-2 py-3 w-16">
@@ -90,18 +92,18 @@ function SortableRow({
             <button
               {...attributes}
               {...listeners}
-              className="cursor-grab text-zinc-300 hover:text-zinc-500 active:cursor-grabbing touch-none"
+              className="cursor-grab text-slate-300 hover:text-slate-500 active:cursor-grabbing touch-none"
               title="Arrastar para reordenar"
             >
               <GripVertical size={14} />
             </button>
-            <span className={`font-mono text-xs font-semibold ${isInactive ? "text-zinc-400" : "text-blue-600"}`}>
+            <span className={`font-mono text-xs font-semibold ${isInactive ? "text-slate-400" : "text-blue-600"}`}>
               {formatCallOrder(appt.callOrder)}
             </span>
           </div>
         </td>
 
-        <td className="px-4 py-3 font-mono text-xs text-zinc-600">{appt.time}</td>
+        <td className="px-4 py-3 font-mono text-xs text-slate-600">{appt.time}</td>
 
         <td
           className="px-4 py-3 cursor-pointer"
@@ -110,23 +112,23 @@ function SortableRow({
           <div className="flex items-center gap-1.5">
             <p
               title={appt.patient?.name}
-              className={`font-medium truncate max-w-40 ${isInactive ? "line-through text-zinc-400" : appt.patient?.cadastroIncompleto ? "text-red-500" : "text-zinc-900"}`}
+              className={`font-medium truncate max-w-40 ${isInactive ? "line-through text-slate-500" : appt.patient?.cadastroIncompleto ? "text-red-500" : "text-slate-800"}`}
             >
               {appt.patient?.name ?? "—"}
             </p>
             {isInactive && (
-              <span className="shrink-0 rounded-full bg-zinc-200 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-zinc-500">
+              <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-slate-600">
                 Cancelado
               </span>
             )}
           </div>
         </td>
 
-        <td className="px-4 py-3 text-xs text-zinc-500">{appt.patient?.phone ?? "—"}</td>
-        <td className="px-4 py-3 text-xs text-zinc-600 truncate max-w-32">{appt.doctor?.name ?? "—"}</td>
-        <td className="px-4 py-3 text-xs text-zinc-500">{appt.category}</td>
+        <td className="px-4 py-3 text-xs text-slate-600">{appt.patient?.phone ?? "—"}</td>
+        <td className="px-4 py-3 text-xs text-slate-600 truncate max-w-32">{appt.doctor?.name ?? "—"}</td>
+        <td className="px-4 py-3 text-xs text-slate-500">{appt.category}</td>
         <td className="px-4 py-3">
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">{appt.type}</span>
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">{appt.type}</span>
         </td>
         <td className="px-4 py-3">
           {canChangeStatus ? (
@@ -134,14 +136,14 @@ function SortableRow({
               value={appt.status}
               onChange={(e) => statusMutation.mutate({ id: appt.id, status: e.target.value })}
               onClick={(e) => e.stopPropagation()}
-              className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer ${STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}
+              className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer ${badgeMap[appt.status] ?? STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}
             >
-              {APPOINTMENT_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
+              {activeStatuses.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
               ))}
             </select>
           ) : (
-            <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}>
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${badgeMap[appt.status] ?? STATUS_TEXT_COLORS[appt.status] ?? "text-zinc-600 bg-zinc-100"}`}>
               {appt.status}
             </span>
           )}
@@ -150,7 +152,7 @@ function SortableRow({
           <div className="flex justify-end gap-1">
             <button
               onClick={() => setDetailsAppt(appt)}
-              className="rounded p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-blue-50"
+              className="rounded p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
               title="Ver detalhes"
             >
               <Eye size={14} />
@@ -158,7 +160,7 @@ function SortableRow({
             {canEditAppointment && (
               <button
                 onClick={() => setEditingAppt(appt)}
-                className="rounded p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                className="rounded p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 title="Editar"
               >
                 <Pencil size={14} />
@@ -173,7 +175,7 @@ function SortableRow({
           <td colSpan={9} className="px-6 py-3 space-y-2">
             {appt.procedureName && (
               <div>
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Procedimentos</p>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Procedimentos</p>
                 <div className="flex flex-wrap gap-1.5">
                   {appt.procedureName.split(",").map((name, i) => (
                     <span key={i} className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700">
@@ -184,8 +186,8 @@ function SortableRow({
               </div>
             )}
             <div>
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Obs. Agenda</p>
-              <p className="text-sm text-zinc-700">{appt.obsAgenda || <span className="text-zinc-400 italic">Sem observações</span>}</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Obs. Agenda</p>
+              <p className="text-sm text-zinc-700">{appt.obsAgenda || <span className="text-zinc-500 italic">Sem observações</span>}</p>
             </div>
           </td>
         </tr>
@@ -207,9 +209,11 @@ export default function AgendaPage() {
   const [search, setSearch] = useState("");
   const [localOrder, setLocalOrder] = useState<Appointment[]>([]);
   const [showReport, setShowReport] = useState(false);
+  const [countStatus, setCountStatus] = useState("Confirmado");
 
   const queryClient = useQueryClient();
   const { canChangeStatus, canEditAppointment, canCreateAppointment, isMedico } = usePermissions();
+  const { activeStatuses, badgeMap: pageBadgeMap } = useAppointmentStatuses();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -220,7 +224,7 @@ export default function AgendaPage() {
 
   const { data: procedures = [] } = useQuery({
     queryKey: ["procedures"],
-    queryFn: procedureService.findAll,
+    queryFn: () => procedureService.findAll(),
   });
 
   const { data: appointments = [], isLoading } = useQuery({
@@ -238,6 +242,11 @@ export default function AgendaPage() {
     if (key !== appointmentsKeyRef.current) {
       appointmentsKeyRef.current = key;
       setLocalOrder(appointments);
+    } else if (appointments.length > 0) {
+      // IDs iguais mas dados mudaram (ex: status) — mescla preservando a ordem do drag
+      setLocalOrder((prev) =>
+        prev.map((local) => appointments.find((a) => a.id === local.id) ?? local)
+      );
     }
   }, [appointments]);
 
@@ -298,9 +307,9 @@ export default function AgendaPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6">
+    <div className="flex flex-col gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6 lg:h-screen lg:overflow-hidden">
       {/* Left column — calendar */}
-      <div className="flex gap-3 overflow-x-auto lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-x-visible lg:space-y-4">
+      <div className="flex gap-3 overflow-x-auto lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:space-y-4">
         <MiniCalendar
           selectedDate={selectedDate}
           onDateSelect={(d) => { setSelectedDate(d); setPage(1); setLocalOrder([]); }}
@@ -317,7 +326,7 @@ export default function AgendaPage() {
           </Link>
         )}
 
-        <div className="rounded-xl bg-white border border-zinc-100 shadow-sm p-4">
+        <div className="rounded-xl bg-white border border-zinc-100 shadow-sm p-4 shrink-0">
           <div className="flex items-center gap-2 mb-3">
             <Calendar size={15} className="text-blue-600" />
             <span className="text-xs font-semibold text-zinc-700">
@@ -325,14 +334,32 @@ export default function AgendaPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-zinc-900">{appointments.length}</p>
-          <p className="text-xs text-zinc-400">agendamentos</p>
+          <p className="text-xs text-zinc-500">agendamentos totais</p>
+        </div>
+
+        <div className="rounded-xl bg-white border border-zinc-100 shadow-sm p-4 shrink-0">
+          <div className="mb-3">
+            <select
+              value={countStatus}
+              onChange={(e) => setCountStatus(e.target.value)}
+              className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-medium outline-none cursor-pointer w-full ${pageBadgeMap[countStatus] ?? STATUS_TEXT_COLORS[countStatus] ?? "text-zinc-600 bg-zinc-100"}`}
+            >
+              {activeStatuses.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <p className="text-2xl font-bold text-zinc-900">
+            {appointments.filter((a) => a.status === countStatus).length}
+          </p>
+          <p className="text-xs text-zinc-500">agendamentos</p>
         </div>
       </div>
 
       {/* Right column */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 lg:flex lg:flex-col lg:overflow-hidden lg:min-h-0">
         {!isMedico && (
-          <div className="mb-4 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <div className="mb-4 flex items-center gap-2 overflow-x-auto scrollbar-hide lg:shrink-0">
             <button
               onClick={() => { setSelectedDoctorId("all"); setLocalOrder([]); }}
               className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -370,7 +397,7 @@ export default function AgendaPage() {
         )}
 
         {/* Search */}
-        <div className="relative mb-3">
+        <div className="relative mb-3 lg:shrink-0">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-8 pr-8 text-sm text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
@@ -389,7 +416,7 @@ export default function AgendaPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-xl bg-white border border-zinc-100 shadow-sm">
+        <div className="overflow-auto rounded-xl bg-white border border-zinc-100 shadow-sm lg:flex-1 lg:min-h-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -405,7 +432,7 @@ export default function AgendaPage() {
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-400">
+                  <tr className="sticky top-0 z-10 border-b border-zinc-100 bg-zinc-50 text-left text-[11px] font-semibold uppercase text-zinc-500">
                     <th className="px-2 py-3 w-16">Chamada</th>
                     <th className="px-4 py-3">Horário</th>
                     <th className="px-4 py-3">Paciente</th>
@@ -453,7 +480,7 @@ export default function AgendaPage() {
         </div>
 
         {/* Status legend */}
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-3 lg:shrink-0">
           {[
             { label: "Confirmado", color: "bg-emerald-500" },
             { label: "Aguardando", color: "bg-blue-500" },
