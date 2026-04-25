@@ -131,10 +131,15 @@ async function main() {
   }
   console.log(`${APPOINTMENT_STATUSES_SEED.length} status de agendamento criados`);
 
-  // Procedures — limpa e recria
-  await prisma.procedure.deleteMany({});
-  await prisma.procedure.createMany({ data: PROCEDURES });
-  console.log(`${PROCEDURES.length} procedimentos criados`);
+  // Procedures — upsert (não apaga procedimentos cadastrados manualmente)
+  for (const proc of PROCEDURES) {
+    await prisma.procedure.upsert({
+      where: { code: proc.code },
+      update: {},
+      create: proc,
+    });
+  }
+  console.log(`${PROCEDURES.length} procedimentos verificados/criados`);
 
   // Doctors — seed first without userId, then link medico user after users are created
   const doctorRecords: Record<string, string> = {};
